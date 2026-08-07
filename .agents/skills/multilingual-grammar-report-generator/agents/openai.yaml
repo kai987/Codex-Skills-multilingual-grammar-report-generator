@@ -1,0 +1,4 @@
+interface:
+  display_name: "Multilingual Grammar Report"
+  short_description: "Create validated host or API grammar reports"
+  default_prompt: "Use $multilingual-grammar-report-generator to analyze this subtitle or text with the current Host model and create a validated grammar report."
