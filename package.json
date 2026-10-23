@@ -1,0 +1,31 @@
+{
+  "name": "multilingual-grammar-report-generator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "packageManager": "npm@11.18.0",
+  "engines": { "node": ">=24 <25", "npm": ">=11 <12" },
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty false",
+    "test": "vitest run",
+    "cli": "tsx apps/cli/src/index.ts",
+    "grammar-report": "tsx apps/cli/src/index.ts grammar-report",
+    "setup:readings": "node .agents/skills/multilingual-grammar-report-generator/scripts/ensure-sudachi.mjs"
+  },
+  "dependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "commander": "15.0.0",
+    "openai": "6.48.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "tsx": "4.23.1",
+    "typescript": "6.0.3",
+    "vitest": "4.1.12"
+  }
+}

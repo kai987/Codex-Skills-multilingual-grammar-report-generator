@@ -2,118 +2,162 @@
 
 [English](README.md) | 日本語
 
-日本語・中国語・英語、およびそれらが混在する文章や字幕から、文法解説・語彙・例文を含む学習用レポートを作成する Codex スキルです。機械処理用の JSON と、読みやすい Markdown の両方で出力します。
+日本語・中国語・英語、およびそれらが混在する文章や字幕から、学習用の文法レポートを作成する Codex スキルと Node.js 実行コードです。各文法項目に自然なオリジナル例文を **1 文**とその訳を付け、JSON と Markdown で出力します。
 
-## 公開状況
+## 主な機能と公開範囲
 
-**現在、このリポジトリで公開しているのは紹介ドキュメントと MIT ライセンスです。** 実行コード、依存関係の定義、検証用スキーマはまだ含まれていません。以下は既存のローカル実装に基づく機能説明です。このリポジトリをクローンするだけでは実行できません。
+- UTF-8 の TXT、SRT、VTT、ASS、SSA、および所定の形式に適合する字幕パッケージ JSON に対応します。任意の JSON を推測で読み込む機能ではありません。
+- 字幕から文を再構成し、元のキュー ID、時刻、前後の文脈、確認用フラグを保持します。
+- 接続・助詞・活用・条件・敬語・口語の縮約・省略などを文脈に沿って説明します。
+- バージョンを固定した SudachiPy と `sudachidict_core` で日本語の読みを補完し、確定できない実質的な未知語の読みは `null` にします。
+- 解析を Zod、最終レポートを JSON Schema で検証し、`grammar-report.json` と `grammar-report.md` を生成します。
+- 有効な解析を文単位でキャッシュし、未完了・検証失敗の文を再試行します。
 
-生成済みレポート、入力字幕、キャッシュ、モデルファイルなどは公開内容に含まれていません。
+コア実行コード、CLI、スキル、スキーマ、読み補完スクリプト、関連テストを収録しています。生成済みレポート、ユーザーの入力、キャッシュ、Python 仮想環境、導入済み依存関係、モデルの重み、メディアは同梱しません。音声認識、字幕の検索・取得、動画との同期確認、学習サイトの生成は対象外です。
 
-## 主な機能
+## インストール
 
-- **文章・字幕の取り込み**：UTF-8 の TXT、SRT、VTT、ASS、SSA、および所定の形式に適合する字幕パッケージ JSON を読み込みます。任意の JSON を自動的に解釈する機能ではありません。
-- **文の再構成**：複数の字幕キューに分かれた文をまとめ、元のキュー ID、開始・終了時刻、前後の文との関係を保持します。判定が不確かな区切りには確認用フラグを付けます。
-- **文脈に沿った文法解説**：接続、助詞、活用、態、条件、敬語、口語の縮約、省略などを説明します。単なる感嘆や効果音に文法項目を無理に付けません。
-- **文法項目ごとに例文を 1 文**：元の文をそのまま転用せず、対象の用法を示す例文と、解説言語での訳を付けます。
-- **日本語の読みを補完**：SudachiPy と `sudachidict_core` を使い、日本語のみの文と日本語の語彙の読みをまとめて処理します。確定できない実質的な未知語は推測せず `null` にします。標準の補完処理では、例文の読みや複数言語が混在する文全体の読みは対象外です。
-- **構造化データの検証**：解析結果を Zod で検証し、最終レポートを JSON Schema でも確認します。
-- **再開と再試行**：文単位で有効な解析結果を保存し、未完了・検証失敗の文だけを再試行します。
+**Node.js 24 系、npm 11 系、`venv` と `pip` が使える Python 3** が必要です。パッケージマネージャーは `npm@11.18.0` に固定し、npm 12 は対応範囲外です。初回のパッケージ・辞書導入にはネット接続が必要です。ローカル LLM やモデルの重みは不要です。
 
-## 対応言語とレベル表示
+クローンしたリポジトリのルートで実行します。
 
-| 解析対象 | 学習レベルの体系 |
-| --- | --- |
-| 日本語 | JLPT（N5〜N1） |
-| 中国語 | HSK |
-| 英語 | CEFR（A1〜C2） |
-| 複数言語が混在する文 | 各文法項目の言語に応じた体系 |
+```bash
+git clone https://github.com/kai987/Codex-Skills-multilingual-grammar-report-generator.git
+cd Codex-Skills-multilingual-grammar-report-generator
+node --version
+npm --version
+npx --yes npm@11.18.0 ci
+npm run build
+npm run setup:readings
+npm test
+```
 
-レベルを十分な根拠で判断できない項目は `unknown` / `unmapped` とします。これらの表示は学習の目安であり、各試験団体による公式認定ではありません。
+npm 11.18.0 が有効なら `npm ci` でも導入できます。**CLI の実行前にビルドしてください。** ワークスペース内のパッケージはコンパイル済みファイルを参照するためです。ソース変更後も再ビルドします。
+
+`setup:readings` は `.venv-sudachi` を作成し、[`scripts/requirements-sudachi.txt`](scripts/requirements-sudachi.txt) に指定された SudachiPy 0.6.11 と SudachiDict-core 20260428 を導入します。初回は辞書パッケージをダウンロードし、その後の読み補完はローカルで動きます。既存環境を使う場合は `SUDACHI_PYTHON` で指定できますが、同じ固定バージョンが必要です。ラッパーは Host の確定処理と OpenAI モードの実行前に読み補完環境を確認します。
+
+Codex でこのクローンを開き、[スキルの `SKILL.md`](.agents/skills/multilingual-grammar-report-generator/SKILL.md) に従って、選んだ文章・字幕を解析するよう依頼してください。**`SKILL.md` だけをグローバルのスキルディレクトリへコピーしないでください。** ラッパーはリポジトリ内の実行コード・スクリプト・スキーマを相対パスで参照します。
 
 ## 解析モード
 
 | モード | 用途と条件 |
 | --- | --- |
-| `host` | 対話で利用する場合の既定値。現在の Host モデルが、準備された文を直接解析します。 |
-| `openai` | ユーザーが OpenAI API の利用を明示的に指定した場合のみ使用します。`OPENAI_API_KEY` が必要です。 |
-| `mock` | 自動テスト・CI・テストデータ用です。実際の学習用レポートには使用しません。 |
+| `host` | 対話利用の既定値。現在の Host が「準備 → 解析 → 確定処理」の受け渡しで解析します。 |
+| `openai` | ユーザーが API 利用を明示的に選んだ場合のみ使用します。環境変数 `OPENAI_API_KEY` が必要です。 |
+| `mock` | 自動テスト・CI・テストデータ用です。実際の学習レポートには使用しません。 |
 
-### Host モードの意味
+プロバイダー間の自動フォールバックはありません。API キーが存在するだけでは OpenAI を選びません。**Host はローカルのオフライン LLM ではなく、CLI 単独では現在の Host モデルを呼び出せません。** 現行のプロバイダーに Ollama は含まれません。Sudachi は読みを補完し、文法説明・翻訳・学習レベルは判断しません。
 
-Host モードは、準備されたリクエストを現在の対話モデルが解析し、その結果をローカルの処理へ渡す方式です。CLI だけで現在の Host モデルを呼び出すことはできません。
+### Host：準備・解析・確定処理
 
-**Host モードは「ローカルのオフライン LLM」を意味しません。** 現行の解析プロバイダーに Ollama は含まれていません。また、ローカルで動く SudachiPy は読みの補完を担当するもので、文法の意味・翻訳・JLPT レベルを判断するものではありません。
+1. 処理する権限のあるファイルから、解析依頼を準備します。
 
-API キーが設定されていても、それだけを理由に OpenAI API を選びません。プロバイダー間の自動フォールバックも行いません。
+```bash
+node .agents/skills/multilingual-grammar-report-generator/scripts/run.mjs \
+  --input "/absolute/path/to/subtitle.srt" \
+  --analysis-provider host \
+  --prepare-host \
+  --explanation-language ja-JP \
+  --output output/my-report
+```
 
-## 処理の流れ
+直接入力する場合は `--input ...` を `--text "日本語を勉強しています。"` に置き換えます。解説と訳は `zh-CN`（既定値）、`ja-JP`、`en` から選べます。
 
-1. 選択された文章または字幕を読み込み、形式を検証します。
-2. 字幕キューから文を再構成し、時刻と前後の文脈を保持します。
-3. 指定されたプロバイダーで、文法・翻訳・語彙・例文を作成します。
-4. 解析結果を Zod で検証します。
-5. 設定された SudachiPy 処理で日本語の読みを補完し、再検証します。
-6. 最終レポートを JSON Schema で検証します。
-7. 検証済みの JSON と Markdown レポートを出力します。
+2. 現在の Host に次の 3 点を読ませ、要求された各文を解析し、スキーマに沿った JSON を `output/my-report/host-analysis-response.json` に保存させます。
 
-Host モードでは、手順 3 を **準備 → Host による解析 → 確定処理** に分けます。検証に失敗した場合は対象の文だけを再要求し、再試行の上限に達したら停止します。
+- `output/my-report/host-analysis-request.json`
+- `output/my-report/host-analysis-schema.json`
+- [Host 解析の指示](.agents/skills/multilingual-grammar-report-generator/references/host-analysis.md)
 
-## 主な出力ファイル
+この段階には、ローカルファイルを読み書きできる Host 自身による解析が必要です。準備コマンドだけで本物の解析結果が作成されるわけではありません。文 ID を保持し、各文法項目に例文を 1 文とその訳を付け、応答スキーマに従います。日本語のみの文と日本語語彙の読みは `null` にし、後段の決定的な補完処理に任せます。
 
-以下は完全な実行環境で生成されるファイルの説明です。このリポジトリに実物の出力データを同梱しているわけではありません。
+3. **準備時と同じ出力ディレクトリ**で確定処理を行います。元の入力は渡し直しません。
+
+```bash
+node .agents/skills/multilingual-grammar-report-generator/scripts/run.mjs \
+  --analysis-provider host \
+  --finalize-host \
+  --output output/my-report
+```
+
+検証と読み補完を経て、両形式のレポートが生成されます。`HOST_ANALYSIS_VALIDATION_FAILED` が返ったら、更新されたリクエストを読み、未完了 ID だけを Host に修正させて再度確定処理を行います。マニフェストが `retry-exhausted` になった場合は停止し、別のプロバイダーへ切り替えません。
+
+スキルのラッパーでは、モード・処理段階を省略すると Host の準備が既定になります。下位の CLI から Host を使うには準備・確定の指定が必要で、指定しなければ `HOST_CONTEXT_REQUIRED` になります。
+
+### OpenAI：明示的に API を選ぶ場合のみ
+
+実行前に、シェルや Host の環境へ `OPENAI_API_KEY` を安全に設定してください。キーをコミットしたり、共有するコマンド・レポートに載せたりしないでください。[`.env.example`](.env.example) は設定項目の説明用です。**CLI は `.env` ファイルを自動では読み込みません。**
+
+```bash
+# OPENAI_API_KEY は、このシェルで安全に設定済みであること。
+export OPENAI_API_KEY
+node .agents/skills/multilingual-grammar-report-generator/scripts/run.mjs \
+  --input "/absolute/path/to/subtitle.srt" \
+  --analysis-provider openai \
+  --model "<model-available-to-your-account>" \
+  --explanation-language ja-JP \
+  --output output/openai-report
+```
+
+モデルのプレースホルダーを、自分のアカウントで利用でき、必要な Responses API の構造化出力に対応するモデル ID へ置き換えてください。優先順は `--model`、`OPENAI_GRAMMAR_MODEL`、実装上の既定値 `gpt-5.6-sol` です。既定値の指定は利用可能性を保証しません。API モードでは選択した文章と文脈を送信し、料金が発生する場合があります。キーがなければ `MISSING_OPENAI_API_KEY` で停止します。
+
+### Mock：動作確認のみ
+
+```bash
+npm run grammar-report -- \
+  --text "日本語を勉強しています。" \
+  --analysis-provider mock \
+  --output output/mock-smoke
+```
+
+API や Host との受け渡しなしで処理経路を確認できます。**Mock は合成テストデータであり、本物の文法学習レポートではありません。** 独立した試行には新しい出力ディレクトリを使ってください。
+
+## 出力と主なオプション
 
 | ファイル | 内容 |
 | --- | --- |
-| `grammar-report.json` | 文、翻訳、読み、文法、語彙、例文、時刻などを持つ構造化レポート |
-| `grammar-report.md` | 閲覧用の Markdown レポート |
-| `sentences.json` | 再構成した文と元の字幕との対応情報 |
-| `analysis-manifest.json` | 解析の進捗、設定、再試行の状態 |
-| `input-info.json` | 入力に関する情報 |
-| `normalized-text.txt` | 正規化したテキスト |
-| `host-analysis-request.json` | Host に解析を依頼する文と文脈（Host モード） |
-| `host-analysis-schema.json` | Host が返す応答の構造（Host モード） |
-| `host-analysis-response.json` | Host が作成する解析結果（Host モード） |
+| `grammar-report.json` | 検証済みの文・翻訳・読み・文法・語彙・例文・時刻 |
+| `grammar-report.md` | 閲覧用レポート。完全な構造化データは JSON に収録 |
+| `sentences.json` | 再構成した文と元の字幕との対応 |
+| `input-info.json`、`normalized-text.txt` | 入力情報と正規化したテキスト |
+| `analysis-manifest.json`、`analysis-cache/` | 進捗・再試行状態と文単位のキャッシュ |
+| `host-analysis-{request,schema,response}.json` | Host 用の受け渡しファイル。response は Host が作成 |
 
-字幕では元の時刻を保持します。通常の文章には時刻を作り足さず、`start` と `end` を `null` にします。読みを確定できない場合も、空欄を埋めるための推測は行いません。
+字幕の時刻を保持し、通常の文章の `start` と `end` は `null` にします。日本語のみの文と日本語の語彙の読みはバッチで補完します。複数言語が混在する文全体の読みや例文の読みは、この補完処理の対象外です。辞書・補完処理のバージョンをキャッシュ識別に含め、更新後に古い読みを再利用しないようにします。
 
-## 利用例
-
-以下は、完全なスキルと実行環境がすでに利用可能な場合の依頼例です。現在公開中のリポジトリだけで試せるインストール手順ではありません。
-
-```text
-$multilingual-grammar-report-generator
-添付した日本語字幕を文法解析してください。
-解説と訳は簡体字中国語にし、各文法項目に例文を 1 文付けてください。
+```bash
+npm run grammar-report -- --help
+npm run typecheck
 ```
 
+`--batch-size` は解析バッチあたりの文数（既定 8）、`--max-retries` は再試行回数（既定 2）、`--pause-threshold-seconds` は文を区切る字幕間の休止秒数（既定 1.2）です。`--host-response` で応答 JSON の別パスを指定できます。`--overwrite` は指定ディレクトリ内の生成ファイルを置き換えるため、意図した場合のみ使います。ディレクトリは同じ解析の継続時に再利用し、別の入力には別ディレクトリを使ってください。
+
+## ソース構成
+
 ```text
-$multilingual-grammar-report-generator
-以下の英文を、日本語の解説・訳と、各文法項目につき英文の例文を 1 文付けて解析してください。
+.agents/skills/multilingual-grammar-report-generator/  スキル・参照資料・ラッパー
+apps/cli/                                             文法レポート用 CLI
+packages/grammar-report-core/                         解析とレポート生成
+packages/shared/                                      共通スキーマ・ユーティリティ
+packages/subtitle-core/                               字幕の解析・文の再構成
+schemas/                                              レポート・字幕のデータ契約
+scripts/                                              Sudachi 補完と依存定義
+tests/                                                単体・結合テストとフィクスチャ
 ```
 
-利用者が OpenAI API を選ぶ場合は、その旨を依頼に明記します。指定がなければ、対話環境では Host モードを使います。
+依存関係はロックファイルで固定します。`.gitignore` で出力、キャッシュ、仮想環境、認証情報、ビルド成果物、モデルの重み、メディアを除外しています。ただし、追跡済みのファイルを自動で無害化するものではありません。公開前にはステージされた変更を確認してください。
 
-### 完全な実行環境の前提
+## トラブルシューティングと制約
 
-既存のローカル実装は Node.js 24 系、npm 11 以上、および日本語の読み補完用の Python 環境を使用します。SudachiPy と辞書はバージョンを固定し、辞書や補完処理のバージョンをキャッシュ設定のハッシュに含めます。これにより、辞書更新後に古い読みをそのまま再利用することを避けます。
+- **導入に失敗する場合**：Node 24 系・npm 11 系を確認し、`npx --yes npm@11.18.0 ci` を再実行します。CLI の前に `npm run build` が必要です。別のチェックアウトの `node_modules` をコピーして代用しないでください。
+- **Sudachi の導入に失敗する場合**：`python3`、`venv`、`pip`、ダウンロード先への接続を確認します。`SUDACHI_PYTHON` を使う場合は指定環境に固定バージョンを導入するか、指定を解除して `npm run setup:readings` を再実行します。
+- **Host の検証に失敗する場合**：未完了 ID の依頼に従い、確定済みの文の再生成や穴埋めの解析を避けてください。[レポートの契約](.agents/skills/multilingual-grammar-report-generator/references/report-contract.md)も参照してください。
+- **API エラーの場合**：明示的なモード選択、キー、モデルの利用権限を確認します。他のプロバイダーへのフォールバックはありません。
+- **構造の検証と、言語学的な正しさは別です。** 短い字幕、話者の切り替わり、省略、固有名詞、未知語には人の確認が必要な場合があります。効果音や感嘆で空の文法配列は自然ですが、空配列が常に「分析すべき構造がない」ことを保証するわけではありません。
+- JLPT（日本語）、HSK（中国語）、CEFR（英語）の表示は学習上の目安であり、公式認定ではありません。根拠が不足する場合は `unknown` / `unmapped` にします。
 
-必要な Python 環境や辞書がない場合、ラッパーが専用環境 `.venv-sudachi` を作成して依存パッケージを導入します。初回導入にはパッケージのダウンロードが必要であり、全工程がオフラインで完結するわけではありません。
+## 不具合報告とライセンス
 
-実行コード・依存関係・スキーマが公開されるまでは、このリポジトリ単体のセットアップコマンドは提供していません。
-
-## 制約と注意点
-
-- **構造の検証と、言語学的な正しさは別です。** スキーマ検証を通っても、文法の解釈・翻訳・学習レベルが完全に正しいとは限りません。
-- 短い字幕、話者の切り替わり、省略、固有名詞、未知語は、前後の文脈や人による確認が必要になることがあります。文法配列が空でも、必ずしも「分析すべき構造がない」とは限りません。
-- 文中の英字や人名により、言語判定や読みの結果に確認が必要な場合があります。読みは辞書に基づくもので、音声を聴き取った結果ではありません。
-- このスキルは入力済みの文章・字幕を解析します。音声認識、字幕の検索・取得、動画との同期確認、学習サイトの生成は対象外です。
-- 利用・共有する権限のある素材だけを処理してください。認証情報、個人情報、許可のない字幕・動画を公開 Issue に添付しないでください。
-
-## 不具合報告・改善提案
-
-[GitHub Issues](https://github.com/kai987/Codex-Skills-multilingual-grammar-report-generator/issues) に、再現に必要な最小限の文章、期待する解析、実際の結果を記載してください。Host / OpenAI / Mock のどのモードを使ったかも分かると、問題を切り分けやすくなります。
-
-## ライセンス
+[GitHub Issues](https://github.com/kai987/Codex-Skills-multilingual-grammar-report-generator/issues) に、利用権限のある最小限の再現文章、解析モード、期待する結果を記載してください。認証情報、個人情報、許可のない字幕・動画は添付しないでください。
 
 [MIT License](LICENSE)。

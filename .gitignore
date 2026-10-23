@@ -1,0 +1,49 @@
+# Dependencies, environments and build products
+node_modules/
+.venv/
+.venv-*/
+venv/
+dist/
+dist-types/
+coverage/
+*.tsbuildinfo
+__pycache__/
+*.py[cod]
+*.egg-info/
+# Inputs, reports, temporary files and caches stay local
+input/
+inputs/
+output/
+outputs/
+cache/
+analysis-cache/
+.cache/
+.pytest_cache/
+temp/
+tmp/
+*.log
+*.tmp
+.DS_Store
+# Credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+# Model weights and media are never part of this source repository
+models/
+model/
+*.gguf
+*.ggml
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.bin
+*.mp4
+*.mkv
+*.wav
+*.mp3
+*.zip
+*.tar.gz

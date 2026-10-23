@@ -1,0 +1,3183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.local/multilingual-video-learning/subtitle-package.schema.json",
+  "title": "subtitle-package",
+  "type": "object",
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "1.0.0" },
+    "phase": { "type": "string", "enum": ["pre-final", "final"] },
+    "finalCueCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "finalCueSetHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "packageType": {
+      "type": "string",
+      "const": "multilingual-subtitle-package"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ready",
+        "needs-review",
+        "needs-subtitle-selection",
+        "needs-subtitle-search",
+        "needs-audio-transcription",
+        "no-text-subtitle"
+      ]
+    },
+    "sourceLanguage": {
+      "type": "string",
+      "enum": ["zh", "zh-Hans", "zh-Hant", "ja", "en", "mixed", "und"]
+    },
+    "detectedLanguages": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["zh", "zh-Hans", "zh-Hant", "ja", "en", "mixed", "und"]
+      }
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "fileName": { "type": "string", "minLength": 1 },
+        "container": {
+          "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+        },
+        "durationSeconds": { "type": "number", "minimum": 0 }
+      },
+      "required": ["fileName", "container", "durationSeconds"],
+      "additionalProperties": false
+    },
+    "identity": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+        },
+        "season": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            { "type": "null" }
+          ]
+        },
+        "episode": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            },
+            { "type": "null" }
+          ]
+        },
+        "year": {
+          "anyOf": [
+            { "type": "integer", "minimum": 1888, "maximum": 2200 },
+            { "type": "null" }
+          ]
+        }
+      },
+      "required": ["title", "season", "episode", "year"],
+      "additionalProperties": false
+    },
+    "primarySubtitle": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "language": {
+              "type": "string",
+              "enum": ["zh", "zh-Hans", "zh-Hant", "ja", "en", "mixed", "und"]
+            },
+            "sourceType": {
+              "type": "string",
+              "enum": ["embedded", "online", "transcription"]
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["validated", "needs-review", "rejected"]
+            },
+            "streamIndex": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                { "type": "null" }
+              ]
+            }
+          },
+          "required": [
+            "language",
+            "sourceType",
+            "validationStatus",
+            "streamIndex"
+          ],
+          "additionalProperties": false
+        },
+        { "type": "null" }
+      ]
+    },
+    "subtitleFiles": {
+      "type": "object",
+      "properties": {
+        "srt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            { "type": "null" }
+          ]
+        },
+        "vtt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            { "type": "null" }
+          ]
+        },
+        "ass": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            { "type": "null" }
+          ]
+        }
+      },
+      "required": ["srt", "vtt", "ass"],
+      "additionalProperties": false
+    },
+    "referenceSubtitles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string",
+            "enum": ["zh", "zh-Hans", "zh-Hant", "ja", "en", "mixed", "und"]
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+          },
+          "matchScore": { "type": "number", "minimum": 0, "maximum": 100 }
+        },
+        "required": ["language", "path", "matchScore"],
+        "additionalProperties": false
+      }
+    },
+    "video": {
+      "type": "object",
+      "properties": {
+        "sourcePath": { "type": "null" },
+        "subtitledPath": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            { "type": "null" }
+          ]
+        }
+      },
+      "required": ["sourcePath", "subtitledPath"],
+      "additionalProperties": false
+    },
+    "cues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "start": { "type": "number", "minimum": 0 },
+          "end": { "type": "number", "exclusiveMinimum": 0 },
+          "language": {
+            "type": "string",
+            "enum": ["zh", "zh-Hans", "zh-Hant", "ja", "en", "mixed", "und"]
+          },
+          "languages": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["zh", "zh-Hans", "zh-Hant", "ja", "en", "mixed", "und"]
+            }
+          },
+          "text": { "type": "string", "minLength": 1 },
+          "style": {
+            "type": "string",
+            "enum": ["default", "thought", "music"]
+          },
+          "textSource": {
+            "type": "string",
+            "enum": [
+              "audio-asr",
+              "reference-original-language",
+              "embedded",
+              "online"
+            ]
+          },
+          "speaker": {
+            "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+          },
+          "confidence": {
+            "anyOf": [
+              { "type": "number", "minimum": 0, "maximum": 1 },
+              { "type": "null" }
+            ]
+          },
+          "provenance": {
+            "type": "object",
+            "properties": {
+              "sourceLayer": {
+                "type": "string",
+                "enum": [
+                  "baseline-vad",
+                  "scene-extra-sensitive-vad",
+                  "no-vad",
+                  "large-v3-refinement",
+                  "recovery",
+                  "c5-3-occurrence-recovery",
+                  "c5-4-acoustic-text-recovery",
+                  "c5-11-sequence-recovery",
+                  "c5-12-hallucination-recovery",
+                  "c5-13-human-review",
+                  "c5-13-non-lexical",
+                  "lyrics-asr",
+                  "reference-original-language",
+                  "embedded",
+                  "online"
+                ]
+              },
+              "sourceRequestIds": {
+                "default": [],
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "sourceProfileIds": {
+                "default": [],
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "referenceAnchorIds": {
+                "default": [],
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "historicalReferenceAnchorIds": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "stableReferenceAnchorIds": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "referenceUnitIds": {
+                "default": [],
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "recoveryUnitId": {
+                "default": null,
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "sceneId": {
+                "default": null,
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "sceneLabel": {
+                "default": null,
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "independentSupportCount": {
+                "default": 0,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "qualityScore": {
+                "default": null,
+                "anyOf": [
+                  { "type": "number", "minimum": 0, "maximum": 1 },
+                  { "type": "null" }
+                ]
+              }
+            },
+            "required": [
+              "sourceLayer",
+              "sourceRequestIds",
+              "sourceProfileIds",
+              "referenceAnchorIds",
+              "referenceUnitIds",
+              "recoveryUnitId",
+              "sceneId",
+              "sceneLabel",
+              "independentSupportCount",
+              "qualityScore"
+            ],
+            "additionalProperties": false
+          },
+          "textAudit": {
+            "type": "object",
+            "properties": {
+              "rawAsrText": { "type": "string" },
+              "repairedText": { "type": "string" },
+              "normalizedText": { "type": "string" },
+              "winnerClusterIds": {
+                "default": [],
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "sourceWinnerCueIds": {
+                "default": [],
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "winnerScore": {
+                "anyOf": [
+                  { "type": "number", "minimum": 0, "maximum": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "runnerUpCueId": {
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "runnerUpScore": {
+                "anyOf": [
+                  { "type": "number", "minimum": 0, "maximum": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "scoreGap": {
+                "anyOf": [
+                  { "type": "number", "minimum": 0, "maximum": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "replacements": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "original": { "type": "string", "minLength": 1 },
+                    "replacement": { "type": "string", "minLength": 1 },
+                    "category": { "type": "string", "minLength": 1 },
+                    "confidence": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "evidence": {
+                      "type": "array",
+                      "items": { "type": "string", "minLength": 1 }
+                    }
+                  },
+                  "required": [
+                    "original",
+                    "replacement",
+                    "category",
+                    "confidence",
+                    "evidence"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "deduplicationActions": {
+                "default": [],
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "repairType": {
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "timingDonorCueId": {
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "timingRepairMethod": {
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "reviewRecommended": { "type": "boolean" },
+              "reviewReasons": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              }
+            },
+            "required": [
+              "rawAsrText",
+              "repairedText",
+              "normalizedText",
+              "winnerClusterIds",
+              "sourceWinnerCueIds",
+              "replacements",
+              "deduplicationActions",
+              "reviewRecommended",
+              "reviewReasons"
+            ],
+            "additionalProperties": false
+          },
+          "transcriptionMetrics": {
+            "type": "object",
+            "properties": {
+              "averageLogProbability": {
+                "anyOf": [{ "type": "number" }, { "type": "null" }]
+              },
+              "noSpeechProbability": {
+                "anyOf": [
+                  { "type": "number", "minimum": 0, "maximum": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "tokenProbability": {
+                "anyOf": [
+                  { "type": "number", "minimum": 0, "maximum": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "entropy": {
+                "anyOf": [
+                  { "type": "number", "minimum": 0 },
+                  { "type": "null" }
+                ]
+              },
+              "decoderFallback": {
+                "anyOf": [{ "type": "boolean" }, { "type": "null" }]
+              },
+              "detectedLanguage": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "zh",
+                      "zh-Hans",
+                      "zh-Hant",
+                      "ja",
+                      "en",
+                      "mixed",
+                      "und"
+                    ]
+                  },
+                  { "type": "null" }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "timingEvidence": {
+            "type": "object",
+            "properties": {
+              "sourceTrusted": { "default": false, "type": "boolean" },
+              "speechStart": {
+                "anyOf": [
+                  { "type": "number", "minimum": 0 },
+                  { "type": "null" }
+                ]
+              },
+              "speechEnd": {
+                "anyOf": [
+                  { "type": "number", "exclusiveMinimum": 0 },
+                  { "type": "null" }
+                ]
+              },
+              "tokenTimestampsAvailable": {
+                "default": false,
+                "type": "boolean"
+              },
+              "tokenTimestampsValidated": {
+                "default": false,
+                "type": "boolean"
+              },
+              "tokenTimestampsUsed": { "default": false, "type": "boolean" },
+              "tokens": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": { "type": "string" },
+                    "start": { "type": "number", "minimum": 0 },
+                    "end": { "type": "number", "minimum": 0 },
+                    "probability": {
+                      "anyOf": [
+                        { "type": "number", "minimum": 0, "maximum": 1 },
+                        { "type": "null" }
+                      ]
+                    }
+                  },
+                  "required": ["text", "start", "end"],
+                  "additionalProperties": false
+                }
+              },
+              "alignmentSource": {
+                "type": "string",
+                "enum": [
+                  "source",
+                  "token",
+                  "speech",
+                  "vad",
+                  "segment",
+                  "pause",
+                  "semantic",
+                  "character-ratio"
+                ]
+              },
+              "presentationTimingMethod": {
+                "default": null,
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "preserved-source",
+                      "token",
+                      "speech-boundary",
+                      "pause",
+                      "semantic",
+                      "vad",
+                      "character-ratio"
+                    ]
+                  },
+                  { "type": "null" }
+                ]
+              },
+              "chunkBoundaryConflict": { "type": "boolean" },
+              "speechIntervals": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "start": { "type": "number", "minimum": 0 },
+                    "end": { "type": "number", "exclusiveMinimum": 0 }
+                  },
+                  "required": ["start", "end"],
+                  "additionalProperties": false
+                }
+              },
+              "speechBoundarySource": {
+                "type": "string",
+                "enum": ["silence", "vad", "segment"]
+              },
+              "originalStart": { "type": "number", "minimum": 0 },
+              "originalEnd": { "type": "number", "exclusiveMinimum": 0 },
+              "boundaryChangedToAvoidOverlap": { "type": "boolean" },
+              "boundaryChangeReason": { "type": "string", "minLength": 1 },
+              "timingEvidenceUsed": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "timingRecoveryMethod": {
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "timingRecoveryUnitId": {
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "timingDonorCueId": {
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "timingDonorSource": {
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "timingDonorConfidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "timingRiskScore": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "timingRiskBand": {
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "suspicious",
+                  "auto-realign",
+                  "mandatory-realign"
+                ]
+              },
+              "acousticEvidenceValidated": { "type": "boolean" },
+              "speechPresenceValidated": { "type": "boolean" },
+              "textLocalizationValidated": { "type": "boolean" },
+              "textLocalizationMethod": {
+                "type": "string",
+                "enum": [
+                  "own-token",
+                  "external-token",
+                  "trusted-source",
+                  "same-locus-consensus",
+                  "targeted-asr",
+                  "unresolved"
+                ]
+              },
+              "textLocalizationConfidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "timingLocusConflict": { "type": "boolean" },
+              "timingLocusIds": {
+                "type": "array",
+                "items": { "type": "string", "minLength": 1 }
+              },
+              "selectedTimingLocusId": {
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "selectedTimingLocusScore": { "type": "number", "minimum": 0 },
+              "competingTimingLocusScores": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "locusId": { "type": "string", "minLength": 1 },
+                    "score": { "type": "number", "minimum": 0 }
+                  },
+                  "required": ["locusId", "score"],
+                  "additionalProperties": false
+                }
+              },
+              "externalTokenDonorCueId": {
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "startBoundarySource": { "type": "string", "minLength": 1 },
+              "endBoundarySource": { "type": "string", "minLength": 1 },
+              "startBoundaryConfidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "endBoundaryConfidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "contentRestorationApplied": { "type": "boolean" },
+              "restoredSemanticText": {
+                "anyOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "null" }
+                ]
+              }
+            },
+            "required": [
+              "sourceTrusted",
+              "speechStart",
+              "speechEnd",
+              "tokenTimestampsAvailable",
+              "tokenTimestampsUsed",
+              "tokens",
+              "alignmentSource",
+              "presentationTimingMethod"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "start",
+          "end",
+          "language",
+          "languages",
+          "text",
+          "speaker",
+          "confidence"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "warnings": { "type": "array", "items": { "type": "string" } },
+    "referenceGuidance": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["reference-free", "reference-assisted", "reference-guided"]
+        },
+        "referenceLanguage": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": ["zh", "zh-Hans", "zh-Hant", "ja", "en", "mixed", "und"]
+            },
+            { "type": "null" }
+          ]
+        },
+        "blindGenerationProofPath": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            { "type": "null" }
+          ]
+        },
+        "analysisPath": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            { "type": "null" }
+          ]
+        },
+        "classificationReviewPath": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            { "type": "null" }
+          ]
+        },
+        "timelinePath": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            { "type": "null" }
+          ]
+        },
+        "alignmentPath": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            { "type": "null" }
+          ]
+        },
+        "evaluationPath": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            { "type": "null" }
+          ]
+        },
+        "coverageIntegrityPath": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            { "type": "null" }
+          ]
+        },
+        "coverageRecoveryPlanPath": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            { "type": "null" }
+          ]
+        },
+        "coverageRecoveryResultsPath": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            { "type": "null" }
+          ]
+        },
+        "referenceTextUsedAsTargetPrompt": { "type": "boolean", "const": false }
+      },
+      "required": [
+        "mode",
+        "referenceLanguage",
+        "blindGenerationProofPath",
+        "analysisPath",
+        "timelinePath",
+        "alignmentPath",
+        "evaluationPath",
+        "coverageIntegrityPath",
+        "referenceTextUsedAsTargetPrompt"
+      ],
+      "additionalProperties": false
+    },
+    "transcription": {
+      "type": "object",
+      "properties": {
+        "provider": { "type": "string", "minLength": 1 },
+        "strategy": {
+          "type": "string",
+          "enum": ["quality", "fast", "adaptive"]
+        },
+        "coreML": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "unsupported-platform",
+                "not-compiled",
+                "encoder-missing",
+                "encoder-mismatch",
+                "load-failed",
+                "available",
+                "disabled-by-user"
+              ]
+            },
+            "fallback": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "from": { "type": "string", "minLength": 1 },
+                    "to": { "type": "string", "minLength": 1 },
+                    "reason": { "type": "string", "minLength": 1 }
+                  },
+                  "required": ["from", "to", "reason"],
+                  "additionalProperties": false
+                },
+                { "type": "null" }
+              ]
+            }
+          },
+          "required": ["status", "fallback"],
+          "additionalProperties": false
+        },
+        "qualitySummary": {
+          "type": "object",
+          "properties": {
+            "accepted": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "refined": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "needsHumanReview": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "vadNoVadConflicts": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "resolvedByLargeV3": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "suspectedHallucinations": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "probableNonSpeech": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "autoResolvedVad": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "autoResolvedNoVad": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "autoResolvedLargeV3": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "rejectedVadHallucinations": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "rejectedNoVadHallucinations": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "trueUnresolvedConflicts": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": ["accepted", "refined", "needsHumanReview"],
+          "additionalProperties": false
+        },
+        "canonicalSegmentation": {
+          "type": "object",
+          "properties": {
+            "artifactPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "rawSegmentCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalUtteranceCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "artifactPath",
+            "rawSegmentCount",
+            "canonicalUtteranceCount"
+          ],
+          "additionalProperties": false
+        },
+        "missingDialogueRecovery": {
+          "type": "object",
+          "properties": {
+            "artifactPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "inputReviewGroups": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "recoveryUnits": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "recoveredUnits": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "probableNonSpeechUnits": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "suspectedHallucinationUnits": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "stillNeedsReviewUnits": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "autoCreatedFinalCues": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "closedMissingDialogueReviews": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "recoveryAsrRequests": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "cacheHits": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "profileAttempts": {
+              "type": "object",
+              "properties": {
+                "current-sensitive-vad": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "extra-sensitive-vad": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "no-vad": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "current-sensitive-vad",
+                "extra-sensitive-vad",
+                "no-vad"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "artifactPath",
+            "inputReviewGroups",
+            "recoveryUnits",
+            "recoveredUnits",
+            "probableNonSpeechUnits",
+            "suspectedHallucinationUnits",
+            "stillNeedsReviewUnits",
+            "autoCreatedFinalCues",
+            "closedMissingDialogueReviews",
+            "recoveryAsrRequests",
+            "cacheHits",
+            "profileAttempts"
+          ],
+          "additionalProperties": false
+        },
+        "lyricsTranscription": {
+          "type": "object",
+          "properties": {
+            "artifactPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "detectedSongRegions": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "lyricsAcceptedRegions": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "missingLyricsRegions": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "musicCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "lyricsAsrRequests": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "cacheHits": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "artifactPath",
+            "detectedSongRegions",
+            "lyricsAcceptedRegions",
+            "missingLyricsRegions",
+            "musicCueCount",
+            "lyricsAsrRequests",
+            "cacheHits"
+          ],
+          "additionalProperties": false
+        },
+        "sceneAnalysis": {
+          "type": "object",
+          "properties": {
+            "windowsArtifactPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "scenesArtifactPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "routingPlanArtifactPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "status": { "type": "string", "enum": ["completed", "failed"] },
+            "mode": { "type": "string", "enum": ["off", "observe", "route"] },
+            "routingMode": {
+              "type": "string",
+              "enum": ["conservative", "balanced", "aggressive"]
+            },
+            "sceneCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "proactiveNoVadScenes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "proactiveExtraSensitiveVadScenes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "proactiveLyricsScenes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "noVadRequests": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "extraSensitiveVadRequests": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "lyricsRequests": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "cacheHits": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "windowsArtifactPath",
+            "scenesArtifactPath",
+            "routingPlanArtifactPath",
+            "status",
+            "mode",
+            "routingMode",
+            "sceneCount",
+            "proactiveNoVadScenes",
+            "proactiveExtraSensitiveVadScenes",
+            "proactiveLyricsScenes",
+            "noVadRequests",
+            "extraSensitiveVadRequests",
+            "lyricsRequests",
+            "cacheHits"
+          ],
+          "additionalProperties": false
+        },
+        "finalSubtitleIntegrity": {
+          "type": "object",
+          "properties": {
+            "artifactPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["passed", "needs-review"]
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "quarantinedCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "hardFindingCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "subtitleCoverageRatio": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "required": [
+            "artifactPath",
+            "validationStatus",
+            "finalCueCount",
+            "quarantinedCueCount",
+            "hardFindingCount",
+            "subtitleCoverageRatio"
+          ],
+          "additionalProperties": false
+        },
+        "textIntegrityRepair": {
+          "type": "object",
+          "properties": {
+            "artifactPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "attempted": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "succeeded": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "stillHardBlocked": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "artifactPath",
+            "attempted",
+            "succeeded",
+            "stillHardBlocked"
+          ],
+          "additionalProperties": false
+        },
+        "finalSubtitleRepair": {
+          "type": "object",
+          "properties": {
+            "artifactPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "repaired": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "unresolved": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": ["artifactPath", "repaired", "unresolved"],
+          "additionalProperties": false
+        },
+        "timingRecovery": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["off", "auto", "deep"] },
+            "planPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "resultsPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "timedTokenAlignmentPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "donorResolutionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "boundaryOptimizationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "coreMLCanaryPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "backendSelectionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "timingLocusHypothesesPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "timingLocusConflictsPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "timingLocusContentRecoveryPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            }
+          },
+          "required": [
+            "mode",
+            "planPath",
+            "resultsPath",
+            "timedTokenAlignmentPath",
+            "donorResolutionPath",
+            "boundaryOptimizationPath",
+            "coreMLCanaryPath",
+            "backendSelectionPath"
+          ],
+          "additionalProperties": false
+        },
+        "finalDialogueCoverage": {
+          "type": "object",
+          "properties": {
+            "coverageMapPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "gapAnalysisPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "resurrectionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "spokenRepetitionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "referenceSpeechAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "referenceAnchorIntegrityPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "serializedAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalCueCountBefore": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "finalCueCountAfter": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "resurrectedSemanticUtteranceCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "unresolvedSpeechGapCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "reviewSummary": {
+              "type": "object",
+              "properties": {
+                "timingReviewCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "coverageReviewCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "contentReviewCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "languageReviewCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "totalReviewCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "timingReviewCount",
+                "coverageReviewCount",
+                "contentReviewCount",
+                "languageReviewCount",
+                "totalReviewCount"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "coverageMapPath",
+            "gapAnalysisPath",
+            "resurrectionPath",
+            "spokenRepetitionPath",
+            "referenceSpeechAuditPath",
+            "referenceAnchorIntegrityPath",
+            "reportPath",
+            "serializedAuditPath",
+            "finalCueCountBefore",
+            "finalCueCountAfter",
+            "resurrectedSemanticUtteranceCount",
+            "unresolvedSpeechGapCount",
+            "reviewSummary"
+          ],
+          "additionalProperties": false
+        },
+        "decisionArchitecture": {
+          "type": "object",
+          "properties": {
+            "phase": { "type": "string", "const": "final" },
+            "policyInventoryPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "evidenceLedgerPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "decisionLedgerPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "spokenOccurrencePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "winnerVerificationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "futureLeakagePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "coverageEvidenceTierPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalReviewQueuePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalArtifactIdentityPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalFinalCueSetHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "targetedAsrRequestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "targetedAsrCacheHitCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "unresolvedSpokenTextCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "wholeEpisodeWhisperRerun": { "type": "boolean", "const": false }
+          },
+          "required": [
+            "phase",
+            "policyInventoryPath",
+            "evidenceLedgerPath",
+            "decisionLedgerPath",
+            "spokenOccurrencePath",
+            "winnerVerificationPath",
+            "futureLeakagePath",
+            "coverageEvidenceTierPath",
+            "finalReviewQueuePath",
+            "finalArtifactIdentityPath",
+            "finalCueCount",
+            "canonicalFinalCueSetHash",
+            "targetedAsrRequestCount",
+            "targetedAsrCacheHitCount",
+            "unresolvedSpokenTextCount",
+            "wholeEpisodeWhisperRerun"
+          ],
+          "additionalProperties": false
+        },
+        "finalAudioVerification": {
+          "type": "object",
+          "properties": {
+            "coverageMapPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "cueVerificationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "timingDriftPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "textMismatchPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "unsubtitledSpeechPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "targetedVerificationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "continuousDriftPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["complete", "needs-review"]
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalFinalCueSetHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "targetedAsrRequestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "wholeEpisodeWhisperRerun": { "type": "boolean", "const": false }
+          },
+          "required": [
+            "coverageMapPath",
+            "cueVerificationPath",
+            "timingDriftPath",
+            "textMismatchPath",
+            "unsubtitledSpeechPath",
+            "targetedVerificationPath",
+            "continuousDriftPath",
+            "reportPath",
+            "validationStatus",
+            "finalCueCount",
+            "canonicalFinalCueSetHash",
+            "targetedAsrRequestCount",
+            "wholeEpisodeWhisperRerun"
+          ],
+          "additionalProperties": false
+        },
+        "acousticTextRecovery": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["off", "observe", "recover"] },
+            "occurrenceCueBindingPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "phoneticConsensusPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "asrIndependenceCalibrationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "historicalCandidateRerankingPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "shortUtteranceRecoveryPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "targetedAsrPlanPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "occurrenceTimingAlignmentPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "occurrenceTimingDriftAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalOccurrenceCoveragePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalChangeAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["complete", "needs-review"]
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalFinalCueSetHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "targetedAsrRequestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "targetedAsrCacheHitCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "wholeEpisodeWhisperRerun": { "type": "boolean", "const": false }
+          },
+          "required": [
+            "mode",
+            "occurrenceCueBindingPath",
+            "phoneticConsensusPath",
+            "asrIndependenceCalibrationPath",
+            "historicalCandidateRerankingPath",
+            "shortUtteranceRecoveryPath",
+            "targetedAsrPlanPath",
+            "occurrenceTimingAlignmentPath",
+            "occurrenceTimingDriftAuditPath",
+            "finalOccurrenceCoveragePath",
+            "finalChangeAuditPath",
+            "reportPath",
+            "validationStatus",
+            "finalCueCount",
+            "canonicalFinalCueSetHash",
+            "targetedAsrRequestCount",
+            "targetedAsrCacheHitCount",
+            "wholeEpisodeWhisperRerun"
+          ],
+          "additionalProperties": false
+        },
+        "unsubtitledSpeechRecovery": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["off", "observe", "recover"] },
+            "candidateAtomizationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "candidateOccurrenceAssignmentPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "recoveryQueuePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "candidateAcousticVerificationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "historicalCandidateResurrectionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "neighborLeakageCalibrationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "occurrenceStructureRecalibrationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "targetedAsrPlanPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalOccurrenceCoveragePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalChangeAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["complete", "needs-review"]
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalFinalCueSetHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "targetedAsrRequestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "targetedAsrCacheHitCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "wholeEpisodeWhisperRerun": { "type": "boolean", "const": false }
+          },
+          "required": [
+            "mode",
+            "candidateAtomizationPath",
+            "candidateOccurrenceAssignmentPath",
+            "recoveryQueuePath",
+            "candidateAcousticVerificationPath",
+            "historicalCandidateResurrectionPath",
+            "neighborLeakageCalibrationPath",
+            "occurrenceStructureRecalibrationPath",
+            "targetedAsrPlanPath",
+            "finalOccurrenceCoveragePath",
+            "finalChangeAuditPath",
+            "reportPath",
+            "validationStatus",
+            "finalCueCount",
+            "canonicalFinalCueSetHash",
+            "targetedAsrRequestCount",
+            "targetedAsrCacheHitCount",
+            "wholeEpisodeWhisperRerun"
+          ],
+          "additionalProperties": false
+        },
+        "candidateTextRelocalization": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["off", "observe", "recover"] },
+            "candidateRelocalizationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "wrongTimingResurrectionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "coverageShadowAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "recomputedCoveragePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "mergeSplitRecalibrationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "recoveryQueuePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "targetedAsrPlanPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalChangeAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["complete", "needs-review"]
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalFinalCueSetHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "targetedAsrRequestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "targetedAsrCacheHitCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "wholeEpisodeWhisperRerun": { "type": "boolean", "const": false }
+          },
+          "required": [
+            "mode",
+            "candidateRelocalizationPath",
+            "wrongTimingResurrectionPath",
+            "coverageShadowAuditPath",
+            "recomputedCoveragePath",
+            "mergeSplitRecalibrationPath",
+            "recoveryQueuePath",
+            "targetedAsrPlanPath",
+            "finalChangeAuditPath",
+            "reportPath",
+            "validationStatus",
+            "finalCueCount",
+            "canonicalFinalCueSetHash",
+            "targetedAsrRequestCount",
+            "targetedAsrCacheHitCount",
+            "wholeEpisodeWhisperRerun"
+          ],
+          "additionalProperties": false
+        },
+        "evidenceGainRecovery": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["off", "observe", "recover"] },
+            "evidenceGainSchedulePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "candidateSpecificAlignmentPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "multipleLocusDisambiguationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "oneMoreEvidenceCandidatesPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "targetedAsrBudgetExecutionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "recoveryQueuePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalChangeAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["complete", "needs-review"]
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalFinalCueSetHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "targetedAsrRequestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "targetedAsrCacheHitCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "wholeEpisodeWhisperRerun": { "type": "boolean", "const": false }
+          },
+          "required": [
+            "mode",
+            "evidenceGainSchedulePath",
+            "candidateSpecificAlignmentPath",
+            "multipleLocusDisambiguationPath",
+            "oneMoreEvidenceCandidatesPath",
+            "targetedAsrBudgetExecutionPath",
+            "recoveryQueuePath",
+            "finalChangeAuditPath",
+            "reportPath",
+            "validationStatus",
+            "finalCueCount",
+            "canonicalFinalCueSetHash",
+            "targetedAsrRequestCount",
+            "targetedAsrCacheHitCount",
+            "wholeEpisodeWhisperRerun"
+          ],
+          "additionalProperties": false
+        },
+        "decisionPolicyCalibration": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["off", "observe", "recover"] },
+            "canonicalLocusRankingAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "marginPolicyAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "directUniqueLocusRecoveryPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "decisionGateAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "evidenceDimensionAggregationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "duplicateEvidencePenaltyAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "circularEvidenceDependencyAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "counterfactualPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "nearMissCandidatesPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "postAsrDecisionTracePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "acceptancePathDecisionsPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "recoveryQueuePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalChangeAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["complete", "needs-review"]
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalFinalCueSetHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "targetedAsrRequestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "targetedAsrCacheHitCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "wholeEpisodeWhisperRerun": { "type": "boolean", "const": false }
+          },
+          "required": [
+            "mode",
+            "canonicalLocusRankingAuditPath",
+            "marginPolicyAuditPath",
+            "directUniqueLocusRecoveryPath",
+            "decisionGateAuditPath",
+            "evidenceDimensionAggregationPath",
+            "duplicateEvidencePenaltyAuditPath",
+            "circularEvidenceDependencyAuditPath",
+            "counterfactualPath",
+            "nearMissCandidatesPath",
+            "postAsrDecisionTracePath",
+            "acceptancePathDecisionsPath",
+            "recoveryQueuePath",
+            "finalChangeAuditPath",
+            "reportPath",
+            "validationStatus",
+            "finalCueCount",
+            "canonicalFinalCueSetHash",
+            "targetedAsrRequestCount",
+            "targetedAsrCacheHitCount",
+            "wholeEpisodeWhisperRerun"
+          ],
+          "additionalProperties": false
+        },
+        "timingGroundingMaterialization": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["off", "observe", "recover"] },
+            "materializationAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "occurrenceWinnerSelectionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "timingGroundingAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "timingNearMissCandidatesPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "timingRepairsPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "overlapClassificationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "coverageRecheckPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "semanticDuplicateAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "timingPolicyCounterfactualPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "materializationFunnelPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "recoveryQueuePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalChangeAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["complete", "needs-review"]
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalFinalCueSetHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "targetedTimingRequestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "targetedTimingCacheHitCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "wholeEpisodeWhisperRerun": { "type": "boolean", "const": false }
+          },
+          "required": [
+            "mode",
+            "materializationAuditPath",
+            "occurrenceWinnerSelectionPath",
+            "timingGroundingAuditPath",
+            "timingNearMissCandidatesPath",
+            "timingRepairsPath",
+            "overlapClassificationPath",
+            "coverageRecheckPath",
+            "semanticDuplicateAuditPath",
+            "timingPolicyCounterfactualPath",
+            "materializationFunnelPath",
+            "recoveryQueuePath",
+            "finalChangeAuditPath",
+            "reportPath",
+            "validationStatus",
+            "finalCueCount",
+            "canonicalFinalCueSetHash",
+            "targetedTimingRequestCount",
+            "targetedTimingCacheHitCount",
+            "wholeEpisodeWhisperRerun"
+          ],
+          "additionalProperties": false
+        },
+        "targetedTimingEvidence": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["off", "observe", "recover"] },
+            "queuePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "auditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "candidateConditionedAlignmentPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "tokenLocusRecoveryPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "boundaryNearMissRepairPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "occurrenceCoreMismatchAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "occurrenceInternalSegmentationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "overlapConflictResolutionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "overwideExistingCueShadowAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "neighborBoundaryDriftRepairPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "timingPolicyCounterfactualPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "postTimingEvidenceDecisionTracePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "materializationFunnelPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalChangeAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["complete", "needs-review"]
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalFinalCueSetHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "targetedTimingRequestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "targetedTimingCacheHitCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "wholeEpisodeWhisperRerun": { "type": "boolean", "const": false }
+          },
+          "required": [
+            "mode",
+            "queuePath",
+            "auditPath",
+            "candidateConditionedAlignmentPath",
+            "tokenLocusRecoveryPath",
+            "boundaryNearMissRepairPath",
+            "occurrenceCoreMismatchAuditPath",
+            "occurrenceInternalSegmentationPath",
+            "overlapConflictResolutionPath",
+            "overwideExistingCueShadowAuditPath",
+            "neighborBoundaryDriftRepairPath",
+            "timingPolicyCounterfactualPath",
+            "postTimingEvidenceDecisionTracePath",
+            "materializationFunnelPath",
+            "finalChangeAuditPath",
+            "reportPath",
+            "validationStatus",
+            "finalCueCount",
+            "canonicalFinalCueSetHash",
+            "targetedTimingRequestCount",
+            "targetedTimingCacheHitCount",
+            "wholeEpisodeWhisperRerun"
+          ],
+          "additionalProperties": false
+        },
+        "localDialogueSequence": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["off", "observe", "recover"] },
+            "humanEvidencePath": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+                },
+                { "type": "null" }
+              ]
+            },
+            "proposalsPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "compoundGroupsPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "internalSegmentationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "repeatedPhraseFamiliesPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "textVariantArbitrationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "locusTheftAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "localOwnershipProtectionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "monotonicAlignmentPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "sequenceHypothesisDecisionsPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "existingCueBoundaryReevaluationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "overlapResolutionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "displayGroupingPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "decisionTracePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalChangeAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["complete", "needs-review"]
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalFinalCueSetHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "sequenceEvidenceRequestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "sequenceEvidenceCacheHitCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "wholeEpisodeWhisperRerun": { "type": "boolean", "const": false }
+          },
+          "required": [
+            "mode",
+            "humanEvidencePath",
+            "proposalsPath",
+            "compoundGroupsPath",
+            "internalSegmentationPath",
+            "repeatedPhraseFamiliesPath",
+            "textVariantArbitrationPath",
+            "locusTheftAuditPath",
+            "localOwnershipProtectionPath",
+            "monotonicAlignmentPath",
+            "sequenceHypothesisDecisionsPath",
+            "existingCueBoundaryReevaluationPath",
+            "overlapResolutionPath",
+            "displayGroupingPath",
+            "decisionTracePath",
+            "finalChangeAuditPath",
+            "reportPath",
+            "validationStatus",
+            "finalCueCount",
+            "canonicalFinalCueSetHash",
+            "sequenceEvidenceRequestCount",
+            "sequenceEvidenceCacheHitCount",
+            "wholeEpisodeWhisperRerun"
+          ],
+          "additionalProperties": false
+        },
+        "hallucinationSequenceGeneralization": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["off", "observe", "recover"] },
+            "hallucinationRecoveryMode": {
+              "type": "string",
+              "enum": ["off", "observe", "recover"]
+            },
+            "automaticSequenceDiscoveryMode": {
+              "type": "string",
+              "enum": ["off", "observe"]
+            },
+            "humanEvidencePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "hallucinationAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "hallucinationQueuePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "candidateFamiliesPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "internalSegmentationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "candidateVerificationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "hallucinationContrastPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "hallucinationDecisionTracePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "automaticSequenceProposalsPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "automaticSequenceTracePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "sequenceGeneralizationAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "sequenceLeaveOneSignalOutPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "sequenceFalsePositiveAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "automaticSequenceReviewQueuePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "sequenceReviewPackManifestPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalChangeAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["complete", "needs-review"]
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalFinalCueSetHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "hallucinationRecoveryRequestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "hallucinationRecoveryCacheHitCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "automaticSequenceFinalMutationCount": {
+              "type": "number",
+              "const": 0
+            },
+            "wholeEpisodeWhisperRerun": { "type": "boolean", "const": false }
+          },
+          "required": [
+            "mode",
+            "hallucinationRecoveryMode",
+            "automaticSequenceDiscoveryMode",
+            "humanEvidencePath",
+            "hallucinationAuditPath",
+            "hallucinationQueuePath",
+            "candidateFamiliesPath",
+            "internalSegmentationPath",
+            "candidateVerificationPath",
+            "hallucinationContrastPath",
+            "hallucinationDecisionTracePath",
+            "automaticSequenceProposalsPath",
+            "automaticSequenceTracePath",
+            "sequenceGeneralizationAuditPath",
+            "sequenceLeaveOneSignalOutPath",
+            "sequenceFalsePositiveAuditPath",
+            "automaticSequenceReviewQueuePath",
+            "sequenceReviewPackManifestPath",
+            "finalChangeAuditPath",
+            "reportPath",
+            "validationStatus",
+            "finalCueCount",
+            "canonicalFinalCueSetHash",
+            "hallucinationRecoveryRequestCount",
+            "hallucinationRecoveryCacheHitCount",
+            "automaticSequenceFinalMutationCount",
+            "wholeEpisodeWhisperRerun"
+          ],
+          "additionalProperties": false
+        },
+        "lexicalSpeechCoverage": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["off", "observe", "recover"] },
+            "coverageMode": {
+              "type": "string",
+              "enum": ["machine-safe", "complete"]
+            },
+            "nonLexicalSubtitleMode": {
+              "type": "string",
+              "enum": ["omit", "include"]
+            },
+            "speechTypeClassificationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "accountabilityLedgerPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "triagePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "recoveryRoutingPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "coverageBindingRepairPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "nonLexicalAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "segmentationReassessmentPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "phoneticFirstRecoveryPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "forcedAlignmentPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "textConditionedTimingPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "sequenceRoutingPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "repeatedShortUtterancePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "overlapBoundaryPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "mandatoryReviewQueuePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reviewPackManifestPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "humanReviewResolutionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "coverageCertificationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalChangeAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["complete", "needs-review", "failed"]
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalFinalCueSetHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "humanReviewRequiredLexicalCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "reviewQueueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "machineSafeCoveragePassed": { "type": "boolean" },
+            "coverageCompletePassed": { "type": "boolean" },
+            "boundedRequestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "wholeEpisodeWhisperRerun": { "type": "boolean", "const": false }
+          },
+          "required": [
+            "mode",
+            "coverageMode",
+            "nonLexicalSubtitleMode",
+            "speechTypeClassificationPath",
+            "accountabilityLedgerPath",
+            "triagePath",
+            "recoveryRoutingPath",
+            "coverageBindingRepairPath",
+            "nonLexicalAuditPath",
+            "segmentationReassessmentPath",
+            "phoneticFirstRecoveryPath",
+            "forcedAlignmentPath",
+            "textConditionedTimingPath",
+            "sequenceRoutingPath",
+            "repeatedShortUtterancePath",
+            "overlapBoundaryPath",
+            "mandatoryReviewQueuePath",
+            "reviewPackManifestPath",
+            "humanReviewResolutionPath",
+            "coverageCertificationPath",
+            "finalChangeAuditPath",
+            "reportPath",
+            "validationStatus",
+            "finalCueCount",
+            "canonicalFinalCueSetHash",
+            "humanReviewRequiredLexicalCount",
+            "reviewQueueCount",
+            "machineSafeCoveragePassed",
+            "coverageCompletePassed",
+            "boundedRequestCount",
+            "wholeEpisodeWhisperRerun"
+          ],
+          "additionalProperties": false
+        },
+        "humanReviewResolution": {
+          "type": "object",
+          "properties": {
+            "mode": { "type": "string", "enum": ["observe", "apply"] },
+            "coverageMode": {
+              "type": "string",
+              "enum": ["machine-safe", "complete"]
+            },
+            "resolutionsTemplatePath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "resolutionsPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "evidenceLedgerPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "dependencyGraphPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "counterfactualPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "applicationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "conflictsPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "roundManifestPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "queueAfterResolutionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "progressReportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "timingAlignmentPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "sequenceResolutionPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "coverageBindingsPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalChangeAuditPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "reportPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "finalArtifactIdentityPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "validationStatus": {
+              "type": "string",
+              "enum": ["complete", "needs-review", "failed"]
+            },
+            "finalCueCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "canonicalFinalCueSetHash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "reviewResolutionInputCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "reviewResolvedCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "reviewOpenCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "reviewBlockedCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "humanReviewRequiredLexicalCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "machineSafeCoveragePassed": { "type": "boolean" },
+            "coverageCompletePassed": { "type": "boolean" },
+            "boundedRequestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "wholeEpisodeWhisperRerun": { "type": "boolean", "const": false }
+          },
+          "required": [
+            "mode",
+            "coverageMode",
+            "resolutionsTemplatePath",
+            "resolutionsPath",
+            "validationPath",
+            "evidenceLedgerPath",
+            "dependencyGraphPath",
+            "counterfactualPath",
+            "applicationPath",
+            "conflictsPath",
+            "roundManifestPath",
+            "queueAfterResolutionPath",
+            "progressReportPath",
+            "timingAlignmentPath",
+            "sequenceResolutionPath",
+            "coverageBindingsPath",
+            "finalChangeAuditPath",
+            "reportPath",
+            "finalArtifactIdentityPath",
+            "validationStatus",
+            "finalCueCount",
+            "canonicalFinalCueSetHash",
+            "reviewResolutionInputCount",
+            "reviewResolvedCount",
+            "reviewOpenCount",
+            "reviewBlockedCount",
+            "humanReviewRequiredLexicalCount",
+            "machineSafeCoveragePassed",
+            "coverageCompletePassed",
+            "boundedRequestCount",
+            "wholeEpisodeWhisperRerun"
+          ],
+          "additionalProperties": false
+        },
+        "asrCache": {
+          "type": "object",
+          "properties": {
+            "manifestPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "migrationPath": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^(?!\\/)(?![A-Za-z]:[\\\\/]).+"
+            },
+            "mode": { "type": "string", "enum": ["off", "read", "read-write"] },
+            "requestCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "hitCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "migratedEntryCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "missCount": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "workerRequestsAvoided": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "manifestPath",
+            "migrationPath",
+            "mode",
+            "requestCount",
+            "hitCount",
+            "migratedEntryCount",
+            "missCount",
+            "workerRequestsAvoided"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": ["provider", "strategy", "qualitySummary"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "packageType",
+    "status",
+    "sourceLanguage",
+    "detectedLanguages",
+    "source",
+    "identity",
+    "primarySubtitle",
+    "subtitleFiles",
+    "referenceSubtitles",
+    "video",
+    "cues",
+    "warnings"
+  ],
+  "additionalProperties": false
+}

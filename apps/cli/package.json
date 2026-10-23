@@ -1,0 +1,14 @@
+{
+  "name": "@mvl/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "multilingual-grammar-report": "./dist/index.js"
+  },
+  "dependencies": {
+    "@mvl/grammar-report-core": "0.1.0",
+    "@mvl/shared": "0.1.0",
+    "commander": "15.0.0"
+  }
+}
