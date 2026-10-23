@@ -17,6 +17,10 @@ output/
 outputs/
 cache/
 analysis-cache/
+.runtime-state.json
+.runtime-state.*.tmp
+.setup-lock*/
+.readings-lock*/
 .cache/
 .pytest_cache/
 temp/

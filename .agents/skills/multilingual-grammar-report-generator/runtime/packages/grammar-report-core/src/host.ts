@@ -278,11 +278,11 @@ function hostResources(outputDirectory: string) {
     reportSchema: path.join(root, "schemas/grammar-report.schema.json"),
     reportContract: path.join(
       root,
-      ".agents/skills/multilingual-grammar-report-generator/references/report-contract.md",
+      "../references/report-contract.md",
     ),
     hostAnalysisRules: path.join(
       root,
-      ".agents/skills/multilingual-grammar-report-generator/references/host-analysis.md",
+      "../references/host-analysis.md",
     ),
   };
 }

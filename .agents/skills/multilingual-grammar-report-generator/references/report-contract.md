@@ -1,6 +1,7 @@
 # Grammar report contract
 
-Treat `schemas/grammar-report.schema.json` as the stable Skill 2 → Skill 3
+Treat `runtime/schemas/grammar-report.schema.json` within the installed skill as
+the stable Skill 2 → Skill 3
 output contract. Require Zod validation of each structured analysis and JSON
 Schema validation of the complete report. Keep `start` and `end` null for
 ordinary text, use `mixed` for sentence-level code switching, attach every
@@ -37,7 +38,7 @@ request with only unfinished IDs and return
 `HOST_ANALYSIS_VALIDATION_FAILED` after a failed response.
 
 After a Host or OpenAI batch passes Zod validation, send every pure-Japanese
-sentence and Japanese vocabulary surface to the pinned project-local
+sentence and Japanese vocabulary surface to the pinned skill-local
 SudachiPy `core` dictionary in one process invocation. Replace model readings
 with hiragana output and leave a reading null when a substantive
 out-of-vocabulary token cannot be resolved without guessing. Validate the

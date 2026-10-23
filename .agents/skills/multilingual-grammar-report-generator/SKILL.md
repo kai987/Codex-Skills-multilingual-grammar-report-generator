@@ -8,6 +8,26 @@ description: Generate or revise validated Chinese, Japanese, English, or mixed-l
 Analyze only the text or validated primary subtitle selected by the user. Keep
 translated reference subtitles separate from original dialogue.
 
+## Resolve this installed skill and its runtime
+
+This folder is a complete, independently installable skill. Resolve its absolute
+directory from the `SKILL.md` that was actually loaded; call it `SKILL_DIR` in
+the commands below. Never assume the calling project contains this skill or
+resolve the launcher from the calling project's `.agents/skills` directory.
+
+Run `node "$SKILL_DIR/scripts/run.mjs"` from the user's working project. The
+launcher automatically installs locked runtime dependencies with pinned npm 11
+and builds the bundled `runtime/` on first use, then reuses them while current.
+It also prepares the pinned Sudachi environment before Host finalization or
+OpenAI analysis. Initial dependency/dictionary setup requires network access.
+Node.js 24 and Python 3 with `venv` and `pip` must already be available; the
+launcher does not install system interpreters or global packages.
+
+Keep the working directory in the user's project. Relative `--input`, `--output`,
+and `--host-response` paths refer to that directory, not the installed skill.
+Always choose an explicit output directory in the user's project. Store reports
+and analysis caches there, not under the installed skill or its `runtime/`.
+
 ## Follow the report workflow
 
 1. Validate and parse the selected UTF-8 input.
@@ -19,7 +39,7 @@ translated reference subtitles separate from original dialogue.
 5. Validate every structured analysis with Zod.
 6. Apply deterministic SudachiPy reading enrichment where configured.
 7. Validate the final report against
-   `schemas/grammar-report.schema.json`.
+   `runtime/schemas/grammar-report.schema.json` within this skill.
 8. Write `grammar-report.json` atomically, then render
    `grammar-report.md`.
 
@@ -49,10 +69,11 @@ For interactive Host analysis:
 1. Prepare the handoff:
 
    ```bash
-   node .agents/skills/multilingual-grammar-report-generator/scripts/run.mjs \
+   node "$SKILL_DIR/scripts/run.mjs" \
      --input "/path/to/subtitle.srt" \
      --analysis-provider host \
-     --prepare-host
+     --prepare-host \
+     --output "/path/to/current-project/output/analysis"
    ```
 
 2. Read the emitted `host-analysis-request.json`, its response schema, and
@@ -63,10 +84,10 @@ For interactive Host analysis:
 4. Finalize deterministically:
 
    ```bash
-   node .agents/skills/multilingual-grammar-report-generator/scripts/run.mjs \
+   node "$SKILL_DIR/scripts/run.mjs" \
      --analysis-provider host \
      --finalize-host \
-     --output "/path/to/analysis"
+     --output "/path/to/current-project/output/analysis"
    ```
 
 5. If finalization returns `HOST_ANALYSIS_VALIDATION_FAILED`, repeat steps 2–4
@@ -83,9 +104,10 @@ again during finalization.
 ## Run OpenAI only after explicit permission
 
 ```bash
-node .agents/skills/multilingual-grammar-report-generator/scripts/run.mjs \
+node "$SKILL_DIR/scripts/run.mjs" \
   --input "/path/to/subtitle.srt" \
-  --analysis-provider openai
+  --analysis-provider openai \
+  --output "/path/to/current-project/output/analysis"
 ```
 
 Require `OPENAI_API_KEY`; if it is missing, return
@@ -94,9 +116,10 @@ Require `OPENAI_API_KEY`; if it is missing, return
 ## Limit Mock to tests
 
 ```bash
-node .agents/skills/multilingual-grammar-report-generator/scripts/run.mjs \
-  --input "tests/fixtures/sample-ja.srt" \
-  --analysis-provider mock
+node "$SKILL_DIR/scripts/run.mjs" \
+  --text "日本語を勉強しています。" \
+  --analysis-provider mock \
+  --output "/path/to/current-project/output/mock-smoke"
 ```
 
 Mock is deterministic test data, not real grammar analysis.

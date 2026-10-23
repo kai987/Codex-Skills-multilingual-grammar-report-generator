@@ -3,10 +3,11 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { withRuntimeLock } from "./bootstrap.mjs";
 
 const SUDACHI_PY_VERSION = "0.6.11";
 const SUDACHI_DICTIONARY_VERSION = "20260428";
-const repositoryRoot = fileURLToPath(new URL("../../../../", import.meta.url));
+const repositoryRoot = fileURLToPath(new URL("../runtime/", import.meta.url));
 const defaultSudachiEnvironment = path.join(repositoryRoot, ".venv-sudachi");
 const defaultSudachiPython = path.join(
   defaultSudachiEnvironment,
@@ -55,45 +56,36 @@ const pythonExecutable =
     ? defaultSudachiPython
     : configured;
 
-if (sudachiRuntimeWorks(pythonExecutable)) {
-  console.log(
-    `Japanese reading enrichment is ready: SudachiPy ${SUDACHI_PY_VERSION} / core ${SUDACHI_DICTIONARY_VERSION}.`,
-  );
-  process.exit(0);
+async function ensureSudachi() {
+  if (!sudachiRuntimeWorks(pythonExecutable)) {
+    if (configured !== undefined && configured !== "") {
+      throw new Error(
+        `SUDACHI_PYTHON does not provide the pinned Sudachi runtime: ${pythonExecutable}. Install ${sudachiRequirements} into that environment or remove the override.`,
+      );
+    }
+    if (!commandWorks("python3", ["--version"])) {
+      throw new Error(
+        "Python 3 is required for deterministic Japanese readings. Install Python 3 and rerun this command.",
+      );
+    }
+    if (!commandWorks(defaultSudachiPython, ["--version"])) {
+      console.log(`Creating the local Sudachi environment at ${defaultSudachiEnvironment}.`);
+      run("python3", ["-m", "venv", defaultSudachiEnvironment]);
+    }
+    console.log(`Installing pinned SudachiPy ${SUDACHI_PY_VERSION} and core dictionary ${SUDACHI_DICTIONARY_VERSION}.`);
+    run(defaultSudachiPython, [
+      "-m", "pip", "install", "--disable-pip-version-check", "--requirement", sudachiRequirements,
+    ]);
+    if (!sudachiRuntimeWorks(defaultSudachiPython)) {
+      throw new Error("The pinned Sudachi runtime failed its reading self-check.");
+    }
+  }
+  console.log(`Japanese reading enrichment is ready: SudachiPy ${SUDACHI_PY_VERSION} / core ${SUDACHI_DICTIONARY_VERSION}.`);
 }
 
-if (configured !== undefined && configured !== "") {
-  console.error(
-    `SUDACHI_PYTHON does not provide the pinned Sudachi runtime: ${pythonExecutable}. Install scripts/requirements-sudachi.txt into that environment or remove the override.`,
-  );
-  process.exit(4);
+try {
+  await withRuntimeLock(repositoryRoot, ensureSudachi, { name: ".readings-lock" });
+} catch (error) {
+  console.error(error.message);
+  process.exitCode = 4;
 }
-if (!commandWorks("python3", ["--version"])) {
-  console.error(
-    "Python 3 is required for deterministic Japanese readings. Install Python 3 and rerun this command.",
-  );
-  process.exit(4);
-}
-if (!commandWorks(defaultSudachiPython, ["--version"])) {
-  console.log(
-    `Creating the local Sudachi environment at ${defaultSudachiEnvironment}.`,
-  );
-  run("python3", ["-m", "venv", defaultSudachiEnvironment]);
-}
-console.log(
-  `Installing pinned SudachiPy ${SUDACHI_PY_VERSION} and core dictionary ${SUDACHI_DICTIONARY_VERSION}.`,
-);
-run(defaultSudachiPython, [
-  "-m",
-  "pip",
-  "install",
-  "--disable-pip-version-check",
-  "--requirement",
-  sudachiRequirements,
-]);
-if (!sudachiRuntimeWorks(defaultSudachiPython)) {
-  throw new Error("The pinned Sudachi runtime failed its reading self-check.");
-}
-console.log(
-  `Japanese reading enrichment is ready: SudachiPy ${SUDACHI_PY_VERSION} / core ${SUDACHI_DICTIONARY_VERSION}.`,
-);

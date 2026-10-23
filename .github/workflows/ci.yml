@@ -16,8 +16,9 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: .agents/skills/multilingual-grammar-report-generator/runtime/package-lock.json
       - run: npm install --global npm@11.18.0
-      - run: npm ci
+      - run: npm run bootstrap
       - run: npm run build
       - run: npm test
       - name: CLI smoke test (test data only, no model API)
