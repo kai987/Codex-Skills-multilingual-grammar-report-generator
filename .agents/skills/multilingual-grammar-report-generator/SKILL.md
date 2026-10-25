@@ -44,6 +44,10 @@ and analysis caches there, not under the installed skill or its `runtime/`.
    hesitation, echo replies and interrupted speech may intentionally stay
    fragmentary. Distinguish an explicit speaker handoff from a pause or EOF;
    neither a final particle nor an ellipsis alone confirms the boundary.
+   Keep open topic, enumeration and concessive/conditional chains connected
+   through fillers only when bounded context supplies a clear final predicate.
+   Do not absorb a completed judgement, startled denial or call into a new
+   stance merely because those cues have no explicit speaker labels.
 3. Select exactly one provider: `host`, `openai`, or `mock`.
 4. Provide exactly one natural example sentence for every identified grammar
    point, with its translation in the selected explanation language.

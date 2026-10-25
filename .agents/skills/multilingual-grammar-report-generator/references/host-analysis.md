@@ -54,6 +54,18 @@ utterance, explain the cross-turn relationship without merging speakers or
 adding the completion to the first person's source text. Keep unsupported
 bare fragments under review rather than clearing every ellipsis.
 
+For topic, enumeration, concession and conditional chains, distinguish a
+pending syntactic dependency from an independent response. `まあ…` does not
+finish an open topic; predicate-bearing `し` can introduce further reasons or
+qualities, while standalone `だけど` can contrast them with a final evaluation.
+Require a clear concluding predicate before confirming a chain across a
+rhetorical pause. A pause alone neither proves a turn change nor authorizes a
+merge. Keep a completed thought, startled denial, call to wait and subsequent
+stance separate when supported by the words, and preserve true quoted or
+nominalized continuations. Automatic clause-chain limits are conservative
+safety bounds, not evidence that every chain inside them is correct; inspect
+remaining flags and do not assign unlabelled voices from the proposed grouping.
+
 ## Chinese
 
 Check subject-predicate structure, 把/被 constructions, aspect markers,

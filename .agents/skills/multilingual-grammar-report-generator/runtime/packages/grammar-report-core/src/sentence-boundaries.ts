@@ -8,7 +8,7 @@ export function boundaryText(text: string): string {
   return extractSpeaker(withoutSound.trim() ? withoutSound : visible).text;
 }
 
-function hasOpenQuote(text: string): boolean {
+export function hasOpenQuote(text: string): boolean {
   const pairs: Readonly<Record<string, string>> = {
     "「": "」", "『": "』", "“": "”", "（": "）", "(": ")", "[": "]",
   };
@@ -27,7 +27,7 @@ const CLOSERS = /[。！？!?….,、，"”’』」）)\]]+$/u;
 const HARD_TERMINAL = /(?:[。！？!?]|(?<!\.)\.)["'”’』」）)\]]*$/u;
 const ELLIPSIS = /(?:…|\.{2,})["'”’』」）)\]]*$/u;
 const CONTINUATION_END = /(?:ので|のに|けど|けれど(?:も)?|ながら|つつ|たり|として|という|といった|ために|ように|には|よりも|もらい|いただき|[はがをにとのや]|⸺|[—-])$/u;
-const JAPANESE_FINITE = /(?:です|でした|ます|ました|ません(?:でした)?|ください|なさい|だった|なんだ|のだ|んだ|だろう|でしょう|はずだ|そうだ|そうか)(?:よね|[ねよなぞさか])*$/u;
+const JAPANESE_FINITE = /(?:です|でした|ます|ました|ません(?:でした)?|ましょう|ください|なさい|だった|なんだ|のだ|んだ|だろう|でしょう|はずだ|そうだ|そうか)(?:よね|[ねよなぞさか])*$/u;
 const QUOTED_ELLIPSIS = /[」』”"]って$/u;
 const SHORT_RESPONSE = /^(?:はい|いいえ|うん|ううん|ええ|そう|なるほど|ありがとう(?:ございます)?|すみません|ごめん(?:なさい)?)[ねよな]*$/u;
 // Only high-signal adjective endings are recognized at EOF. Ambiguous noun
@@ -47,6 +47,58 @@ export interface DialogueBoundaryContext {
 
 function coreText(text: string): string {
   return boundaryText(text).replace(CLOSERS, "").trim();
+}
+
+function plainJudgement(text: string): boolean {
+  const core = coreText(text);
+  return /(?:って|と)\s*思う$/u.test(core) || /^そう思う$/u.test(core) ||
+    /ある(?:よね|[ねよぞな])$/u.test(core);
+}
+
+export function isEnumeratingClause(text: string): boolean {
+  const core = coreText(text);
+  // Avoid lexical し in すし / しかし / ただし / もし. Prefer explicit
+  // predicate morphology or a case/topic marker over a bare suffix match.
+  return /(?:です|ます|だった|くない|しい|たい|ある|いる|する|できる)し[さねよ]*$/u.test(core) ||
+    (/[はがもをに]/u.test(core) && /[いイだたる]し[さねよ]*$/u.test(core)) ||
+    /[\p{Script=Han}\p{Script=Katakana}][\p{L}ー]*[いイ]し[さねよ]*$/u.test(core);
+}
+
+export function isClauseFiller(text: string): boolean {
+  return /^(?:うん[\s、，….…]*)?(?:まあ[\s、，….…]*)+$/u.test(coreText(text));
+}
+
+export function isBareTopic(text: string): boolean {
+  return /^[\p{L}\p{N}ー・･\s]{1,24}[はも]$/u.test(coreText(text));
+}
+
+export function isWaitCall(text: string): boolean {
+  return /^(?:ちょっと[\s、，]*)?待って(?:ください)?(?:[\s、，]+[\p{L}ー・]{1,15})?$/u.test(coreText(text));
+}
+
+export function isStartledDenial(text: string): boolean {
+  return /^(?:えっ?|あっ?)[？?!！][\s、，]*(?:いや[\s、，….…]*)+$/u.test(coreText(text));
+}
+
+export function isStandaloneAcknowledgement(text: string): boolean {
+  return /^(?:はい|いいえ|うん|ええ|そうですね|なるほど|分かりました|わかりました)[、，。！!…\s]*$/u.test(boundaryText(text));
+}
+
+export function isSuspendedClause(text: string): boolean {
+  return ELLIPSIS.test(boundaryText(text)) && isIncompleteEnding(text);
+}
+
+export function clauseDependency(text: string): boolean {
+  if (HARD_TERMINAL.test(boundaryText(text))) return false;
+  const core = coreText(text);
+  return isBareTopic(text) || isEnumeratingClause(text) ||
+    /(?:けど|けれど(?:も)?|ですが|ますが|んだが|のだが|なら|たら|れば)$/u.test(core);
+}
+
+export function hasPendingClauseBeforeFillers(texts: readonly string[]): boolean {
+  if (!texts.length || !isClauseFiller(texts.at(-1)!)) return false;
+  const substantive = [...texts].reverse().find(text => !isClauseFiller(text));
+  return substantive !== undefined && clauseDependency(substantive);
 }
 
 function hasHesitationToken(text: string): boolean {
@@ -159,8 +211,12 @@ export function isTemporalTopicContinuation(topic: string, nextText: string): bo
 }
 
 export function continuesNominalizedClause(text: string, nextText: string): boolean {
-  return /の$/u.test(coreText(text)) &&
-    /^(?:が|は|を|に|で)(?:[、，\s]|[\p{Script=Han}\p{Script=Katakana}]|$)/u.test(boundaryText(nextText));
+  const next = boundaryText(nextText);
+  return (/の$/u.test(coreText(text)) &&
+    /^(?:が|は|を|に|で)(?:[、，\s]|[\p{Script=Han}\p{Script=Katakana}]|$)/u.test(next)) ||
+    (plainJudgement(text) && (/^(?:の|こと)[はがをにで](?:[、，\s]|[\p{Script=Han}\p{Script=Katakana}]|$)/u.test(next) ||
+      /^(?:はず|つもり|予定|わけ)(?:[だでなもがはを]|$)/u.test(next))) ||
+    (/待って$/u.test(coreText(text)) && /^(?:ください|から)/u.test(next));
 }
 
 export function continuesClosedQuotation(text: string, nextText: string): boolean {
@@ -173,7 +229,7 @@ export function isIncompleteEnding(text: string, context: DialogueBoundaryContex
   if (hasOpenQuote(visible)) return true;
   if (HARD_TERMINAL.test(visible)) return false;
   if (sameCueInversion(visible) || conventionalEllipsis(visible, context)) return false;
-  return CONTINUATION_END.test(visible.replace(CLOSERS, ""));
+  return isEnumeratingClause(visible) || CONTINUATION_END.test(visible.replace(CLOSERS, ""));
 }
 
 export function continuesInNextCue(text: string): boolean {
@@ -185,13 +241,15 @@ export function hasCompleteEnding(text: string, atEndOfInput = false, context: D
   const visible = boundaryText(text);
   if (hasOpenQuote(visible)) return false;
   if (HARD_TERMINAL.test(visible)) return true;
+  if (isWaitCall(visible) || (isStartledDenial(visible) &&
+      (context.turnEnded || (context.nextText && isWaitCall(context.nextText))))) return true;
   if (sameCueInversion(visible) || conventionalEllipsis(visible, {
     ...context, turnEnded: context.turnEnded === true || atEndOfInput,
   })) return true;
   const core = visible.replace(CLOSERS, "");
   if (QUOTED_ELLIPSIS.test(visible)) return true;
-  if (CONTINUATION_END.test(core)) return false;
-  return JAPANESE_FINITE.test(core) || SHORT_RESPONSE.test(core) ||
+  if (isEnumeratingClause(visible) || CONTINUATION_END.test(core)) return false;
+  return JAPANESE_FINITE.test(core) || plainJudgement(visible) || SHORT_RESPONSE.test(core) ||
     (atEndOfInput && ADJECTIVE_PREDICATE.test(core));
 }
 

@@ -30,8 +30,8 @@ review. These conservative heuristics are not a full Japanese syntax parser.
 
 Japanese dialogue needs constituent and turn context, not just suffix tests.
 Recognize same-cue inversions and high-signal predicate/afterthought pairs,
-including postposed subjects, objects, topics and quoted content. Cross-cue
-repair is bounded to three seconds, requires compatible speaker evidence and
+including postposed subjects, objects, topics and quoted content. Postposed-
+constituent repair is bounded to three seconds, requires compatible speaker evidence and
 stays below the visible-length limit; it does not relax ordinary pause rules
 globally. A following predicate takes priority over borrowing a bare subject
 for the previous clause. Native multi-speaker cues remain atomic and separate
@@ -58,6 +58,21 @@ same-speaker continuations instead of closing them merely on hesitation or
 ellipsis. Bare unsupported constituents, open quotes and forced-length splits
 remain reviewable. These rules do not widen the three-second inversion repair
 window or the ordinary pause threshold, and are not audio-verified diarization.
+
+Open topics and predicate-bearing `し` enumeration may continue through `まあ`
+fillers into a concession, condition and final judgement. A filler does not
+complete the pending clause, and lexical endings such as `すし` or `しかし`
+are not enumeration. Clause-chain lookahead scans at most 12 cues,
+each gap no more than four seconds and combined visible length below 180.
+Crossing the ordinary pause threshold additionally requires at least two
+explicit dependency signals and a clear final predicate; a lone connective
+does not justify a longer merge. This does not change the ordinary pause or
+three-second postposed-constituent limits. Stop at explicit speaker changes,
+native multi-speaker cues, open quotes, independent responses/questions,
+calls or discourse resets. Keep unsupported or unfinished chains reviewable.
+Separate completed judgements, startled denials, calls and new stances when
+their wording establishes distinct speech actions, without inferring voices.
+Retain actual quoted, nominalized and `待って / ください・から…` continuations.
 
 Analyzer-version changes invalidate prior analysis cache identities; preserve
 the old cache files, but do not treat stale context-dependent results as fresh

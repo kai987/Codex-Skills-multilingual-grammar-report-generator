@@ -16,6 +16,7 @@ import {
 } from "@mvl/subtitle-core";
 
 import type { ReconstructedSentence } from "./types.js";
+import { findClauseChains } from "./clause-chains.js";
 import {
   continuesInNextCue,
   continuesClosedQuotation,
@@ -25,6 +26,10 @@ import {
   isPostposedTail,
   isTemporalTopicContinuation,
   continuesNominalizedClause,
+  hasPendingClauseBeforeFillers,
+  hasOpenQuote,
+  isStandaloneAcknowledgement,
+  isSuspendedClause,
   type DialogueBoundaryContext,
 } from "./sentence-boundaries.js";
 
@@ -69,6 +74,7 @@ export function reconstructSubtitleSentences(
   let current: SubtitleCue[] = [];
   let currentSpeaker: string | null = null;
   const speakers = cues.map(cue => extractCueSpeakers(cue.text, cue.speaker));
+  const clauseChains = findClauseChains(cues, speakers, pauseThresholdSeconds);
   const speakerAt = (index: number): string | null => speakers[index]?.[0] ?? null;
   const multipleSpeakersAt = (index: number): boolean => (speakers[index]?.length ?? 0) > 1;
   const previousText = (): string | null => {
@@ -127,9 +133,10 @@ export function reconstructSubtitleSentences(
     if (
       previous !== undefined &&
       (multipleSpeakersAt(index) || (speaker !== null && speaker !== currentSpeaker) ||
-        (cue.start - previous.end >= pauseThresholdSeconds && !attached))
+        (isStandaloneAcknowledgement(cue.text) && isSuspendedClause(before)) ||
+        (cue.start - previous.end >= pauseThresholdSeconds && !attached && !clauseChains.links.has(index - 1)))
     ) {
-      const incomplete = isIncompleteEnding(before, priorContext);
+      const incomplete = isIncompleteEnding(before, priorContext) || hasPendingClauseBeforeFillers(current.map(c => c.text));
       flush(incomplete ? 0.65 : 0.82, incomplete);
     }
     current.push(cue);
@@ -141,8 +148,8 @@ export function reconstructSubtitleSentences(
       (nextSpeaker === null || nextSpeaker === currentSpeaker) &&
       (continuesInNextCue(next.text) || continuesNominalizedClause(combined, next.text));
     const quotedContinuation = continuation && next !== undefined && continuesClosedQuotation(combined, next.text);
-    const dependency = !multipleSpeakersAt(index) && next !== undefined &&
-      contextualLink(combined, currentSpeaker, index + 1, cue.end);
+    const dependency = clauseChains.links.has(index) || (!multipleSpeakersAt(index) && next !== undefined &&
+      contextualLink(combined, currentSpeaker, index + 1, cue.end));
     const context: DialogueBoundaryContext = {
       previousText: previousText(),
       nextText: next?.text ?? null,
@@ -152,6 +159,7 @@ export function reconstructSubtitleSentences(
       previousSpeakerUnknown: previousSpeakerUnknown(currentSpeaker),
     };
     const visibleLength = Array.from(combined.replace(/\p{Cf}/gu, "")).length;
+    const pendingFiller = hasPendingClauseBeforeFillers(current.map(c => c.text));
     // Keep the safety limit, but don't let invisible directional controls turn
     // an otherwise complete sentence into a forced-length fragment.
     if (visibleLength >= 180) flush(0.65, true);
@@ -159,9 +167,10 @@ export function reconstructSubtitleSentences(
       const lastLine = cue.text.split("\n").at(-1) ?? cue.text;
       flush(0.82, isIncompleteEnding(lastLine, { ...context, turnEnded: true }));
     }
-    else if (attached) flush(hasTerminalPunctuation(combined) ? 0.97 : 0.92);
-    else if (!dependency && !quotedContinuation && hasTerminalPunctuation(combined)) flush(0.97);
-    else if (!dependency && !continuation && hasCompleteEnding(combined, next === undefined, context)) flush(0.94);
+    else if (attached && !dependency && !pendingFiller) flush(hasTerminalPunctuation(combined) ? 0.97 : 0.92);
+    else if (!dependency && !continuation && !hasOpenQuote(combined) && clauseChains.ends.has(index)) flush(0.91);
+    else if (!dependency && !pendingFiller && !quotedContinuation && hasTerminalPunctuation(combined)) flush(0.97);
+    else if (!dependency && !pendingFiller && !continuation && hasCompleteEnding(combined, next === undefined, context)) flush(0.94);
   }
   if (current.length > 0) {
     const complete = hasCompleteEnding(joinCueText(current.map(item => item.text)), true, {
