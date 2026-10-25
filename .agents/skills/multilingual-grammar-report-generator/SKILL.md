@@ -37,6 +37,9 @@ and analysis caches there, not under the installed skill or its `runtime/`.
    replies merely because they lack punctuation, or flag a complete reply
    solely because it is the last cue. Keep dependent clauses connected and
    retain review flags for genuinely unfinished or forced-length groups.
+   Review Japanese inversions, postposed constituents and context-supported
+   elliptical replies before treating a final particle as truncation. Do not
+   join different speakers or invent omitted words to resolve a flag.
 3. Select exactly one provider: `host`, `openai`, or `mock`.
 4. Provide exactly one natural example sentence for every identified grammar
    point, with its translation in the selected explanation language.

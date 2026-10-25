@@ -52,6 +52,7 @@ If you used a custom destination, set `GRAMMAR_SKILL_DIR` to the skill's actual 
 - Read UTF-8 TXT, SRT, VTT, ASS, SSA, and validated subtitle-package JSON—not arbitrary JSON.
 - Reconstruct sentences while retaining cue IDs, timestamps, context links, and review flags.
 - Recognize inline Japanese speaker labels (including furigana), carry speakers through unlabelled cues, and distinguish complete unpunctuated replies from connected clauses. Invisible format controls do not count toward the safety limit; EOF alone does not mark a complete reply as truncated.
+- Use bounded dialogue context for Japanese inversions, postposed constituents and elliptical replies. High-signal cross-cue repairs allow at most three seconds, without crossing explicit speaker changes or overriding the length limit; ambiguous fragments still need review. Native multi-speaker cues keep their source timing and do not absorb adjacent unlabelled speech. The Host handoff retains all explicitly labelled people (also after sound annotations), without treating known sound effects as people.
 - Explain grammar in context, including contractions, omitted elements, conditionals, and honorific language.
 - Enrich Japanese readings with pinned SudachiPy and `sudachidict_core`; leave unresolved substantive out-of-vocabulary readings `null`.
 - Validate analysis with Zod and final reports with JSON Schema; export JSON and Markdown.
@@ -183,6 +184,7 @@ The runtime lockfile pins dependencies. `.gitignore` excludes outputs, caches, e
 - **API failures:** check explicit provider selection, credentials, and model access. There is no provider fallback.
 - **Linguistic accuracy:** schema validation checks structure, not correctness. Short fragments, speaker changes, names, and OOV readings may need review. Empty grammar arrays can be appropriate for effects/interjections but may also merit review.
 - **Sentence boundaries:** reconstruction is conservative, not a full syntax parser. Open quotes, unfinished connectives, ambiguous final fragments and forced-length groups still need review. It preserves each cue and its timing rather than inventing within-cue timestamps. Existing prepared reports are not silently regrouped after an upgrade; prepare the source again in a new output directory to use updated boundaries.
+- **Cached context:** analyzer 1.1.0 uses a new analysis-cache identity after the dialogue-context changes. Older cache files are preserved but are not silently reused as if they had received the new contextual analysis.
 - JLPT, HSK, and CEFR labels are learning estimates, not official certifications; uncertain mappings use `unknown` / `unmapped`.
 
 ## Feedback and license

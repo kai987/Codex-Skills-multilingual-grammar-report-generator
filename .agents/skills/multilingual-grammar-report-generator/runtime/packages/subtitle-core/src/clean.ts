@@ -1,5 +1,6 @@
 const ALLOWED_HTML_TAG = /<\/?(?:b|i|u|font|span|ruby|rt|c)(?:\s[^>]*)?>/giu;
 const ASS_OVERRIDE = /\{\\[^}]*\}/gu;
+const SOUND_ANNOTATION = /^(?:.*[のを].*音|.*(?:泣き|鳴き|笑い|つぶやき)声|.*(?:バイブレーター|警笛|歓声|拍手)|音|声|つぶやき声|足音|呼び出し音|ため息|騒ぎ声|泣き声|鳴き声|笑い声|笑い|笑|くしゃみ|あくび|せきばらい|ホイッスル|音楽|BGM|SE|♪.*)$/iu;
 
 const ENTITIES: Readonly<Record<string, string>> = {
   "&amp;": "&",
@@ -47,11 +48,10 @@ export function extractSpeaker(text: string): {
   const inline = /^(?:[-–—]\s*)?[（(]((?:[^()（）\n]|[（(][ぁ-ゖァ-ヶー]+[）)]){1,60})[）)]\s*([\s\S]*)$/u.exec(visible);
   if (inline?.[1] !== undefined && inline[2] !== undefined) {
     const label = inline[1].replace(/[（(][ぁ-ゖァ-ヶー]+[）)]/gu, "").trim();
-    const soundAnnotation = /^(?:.*[のを].*音|.*のつぶやき声|音|声|つぶやき声|足音|呼び出し音|ため息|拍手|笑い声|笑い|笑|音楽|BGM|SE|♪.*)$/iu;
     const actionAnnotation = /(?:[がを].*[くるすたて]$|ながら|ている|てる|する|した|開く|閉まる|鳴る|泣く|小声で|ささやく)/u;
     const japaneseLabel = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(label);
     if (japaneseLabel && /^[\p{L}\p{N} ._'’ー・-]+$/u.test(label) &&
-        !soundAnnotation.test(label) && !actionAnnotation.test(label)) {
+        !SOUND_ANNOTATION.test(label) && !actionAnnotation.test(label)) {
       return { speaker: label, text: inline[2].trim() };
     }
   }
@@ -63,4 +63,15 @@ export function extractSpeaker(text: string): {
     return { speaker: null, text };
   }
   return { speaker: match[1].trim(), text: match[2].trim() };
+}
+
+/** All explicit line-leading people in a cue, without assigning unlabelled speech. */
+export function extractCueSpeakers(text: string, metadataSpeaker: string | null = null): string[] {
+  const names = metadataSpeaker === null || SOUND_ANNOTATION.test(metadataSpeaker)
+    ? [] : [metadataSpeaker];
+  for (const line of text.split("\n")) {
+    const speaker = extractSpeaker(line).speaker;
+    if (speaker !== null && !SOUND_ANNOTATION.test(speaker)) names.push(speaker);
+  }
+  return [...new Set(names)];
 }

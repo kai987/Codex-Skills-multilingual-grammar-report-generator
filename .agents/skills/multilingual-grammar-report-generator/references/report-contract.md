@@ -28,6 +28,28 @@ replies remain complete without a final period. Unclosed quotes, unfinished
 connectives, ambiguous fragments and forced-length groups still require
 review. These conservative heuristics are not a full Japanese syntax parser.
 
+Japanese dialogue needs constituent and turn context, not just suffix tests.
+Recognize same-cue inversions and high-signal predicate/afterthought pairs,
+including postposed subjects, objects, topics and quoted content. Cross-cue
+repair is bounded to three seconds, requires compatible speaker evidence and
+stays below the visible-length limit; it does not relax ordinary pause rules
+globally. A following predicate takes priority over borrowing a bare subject
+for the previous clause. Native multi-speaker cues remain atomic and separate
+from adjacent cues; never infer the next unlabelled cue belongs to their first
+speaker. The Host handoff includes every explicitly labelled person, including people
+after leading sound annotations, and excludes known sound/action labels.
+Complete explanatory endings, acknowledgement/denial responses and
+question-supported ellipsis are distinct from missing predicates. Standalone
+stance/regret endings are considered only at a turn boundary. Preserve the
+case/topic continuation in nominalizations such as `行くの / が好きです`.
+Ambiguous bare constituents, unclosed quotations and genuine forced splits
+retain review flags. A confirmed boundary can still contain an intentional
+hesitation or an interrupted utterance; do not silently supply its predicate.
+
+Analyzer-version changes invalidate prior analysis cache identities; preserve
+the old cache files, but do not treat stale context-dependent results as fresh
+analysis. Already prepared reports are not silently regrouped by an upgrade.
+
 The public analysis providers are exactly:
 
 - `host`: current Codex/ChatGPT Work model through a prepare → Host analyze →

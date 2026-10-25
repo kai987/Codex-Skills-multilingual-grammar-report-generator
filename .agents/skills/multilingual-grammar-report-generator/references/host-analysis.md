@@ -32,6 +32,16 @@ modality, pragmatic force, contractions, fixed expressions, relative clauses,
 nominalization, discourse links, ellipsis, and omitted copulas. Use `JLPT`
 levels `N5` through `N1` only when defensible; otherwise use `unknown`.
 
+When reviewing subtitle boundaries, distinguish inverted questions, postposed
+subjects/objects/quoted content, ellipsis in replies, and incomplete syntax.
+Use adjacent cues and explicit speaker evidence; a final `に`, `が`, `を`,
+`の`, `けど` or `のに` alone does not settle the boundary. Do not mistake an
+explanatory `の` for a nominalizer before a following case/topic particle.
+Keep native multi-speaker cues intact with their original timing. Confirming
+an intentional pause or interrupted turn does not authorize adding missing
+words or assigning an unlabelled voice to a person. Examples for ellipsis
+should demonstrate the ellipsis, not only the corresponding complete clause.
+
 ## Chinese
 
 Check subject-predicate structure, 把/被 constructions, aspect markers,

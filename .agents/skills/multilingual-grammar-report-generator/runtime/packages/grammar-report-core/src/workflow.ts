@@ -17,6 +17,7 @@ import {
   type GrammarReport,
 } from "@mvl/shared";
 import { z } from "zod";
+import { extractCueSpeakers } from "@mvl/subtitle-core";
 
 import { ANALYZER_VERSION, analyzeSentencesWithCache } from "./analyze.js";
 import {
@@ -171,8 +172,7 @@ export async function prepareGrammarReportArtifacts(
           ...new Set(
             loaded.cues
               .filter((cue) => sentence.cueIds.includes(cue.id))
-              .map((cue) => cue.speaker)
-              .filter((speaker): speaker is string => speaker !== null),
+              .flatMap((cue) => extractCueSpeakers(cue.text, cue.speaker)),
           ),
         ],
       ]),

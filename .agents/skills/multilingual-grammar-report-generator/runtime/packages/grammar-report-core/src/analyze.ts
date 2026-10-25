@@ -10,7 +10,9 @@ import type {
   SentenceAnalysis,
 } from "./types.js";
 
-const ANALYZER_VERSION = "1.0.0";
+// Reconstruction and speaker context changed; analyses made with the previous
+// context must not be silently reused under an identical sentence-text key.
+const ANALYZER_VERSION = "1.1.0";
 
 export function analysisCacheKey(
   sentence: ReconstructedSentence,
