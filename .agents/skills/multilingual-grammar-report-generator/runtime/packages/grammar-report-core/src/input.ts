@@ -85,6 +85,14 @@ export function reconstructSubtitleSentences(
     }));
     return known.size === 1 && !known.has(speaker);
   };
+  const previousSpeakerUnknown = (speaker: string | null): boolean => {
+    const previous = groups.at(-1);
+    return speaker !== null && previous !== undefined && previous.cues.every(cue =>
+      (speakers[cueIndex.get(cue.id) ?? -1]?.length ?? 0) === 0,
+    );
+  };
+  const explicitNextTurn = (known: string | null, index: number): boolean =>
+    !multipleSpeakersAt(index) && speakerAt(index) !== null && speakerAt(index) !== known;
   const sameSpeaker = (known: string | null, index: number): boolean =>
     !multipleSpeakersAt(index) && (speakerAt(index) === null || speakerAt(index) === known);
   const contextWindow = 3;
@@ -111,7 +119,11 @@ export function reconstructSubtitleSentences(
     const speaker = speakerAt(index);
     const before = joinCueText(current.map(item => item.text));
     const attached = previous !== undefined && contextualLink(before, currentSpeaker, index, previous.end);
-    const priorContext: DialogueBoundaryContext = { previousText: previousText(), turnEnded: true, isReply: isReply(currentSpeaker) };
+    const priorContext: DialogueBoundaryContext = {
+      previousText: previousText(), nextText: cue.text, turnEnded: true,
+      isReply: isReply(currentSpeaker), explicitNextTurn: explicitNextTurn(currentSpeaker, index),
+      previousSpeakerUnknown: previousSpeakerUnknown(currentSpeaker),
+    };
     if (
       previous !== undefined &&
       (multipleSpeakersAt(index) || (speaker !== null && speaker !== currentSpeaker) ||
@@ -133,8 +145,11 @@ export function reconstructSubtitleSentences(
       contextualLink(combined, currentSpeaker, index + 1, cue.end);
     const context: DialogueBoundaryContext = {
       previousText: previousText(),
+      nextText: next?.text ?? null,
       turnEnded: next === undefined || !sameSpeaker(currentSpeaker, index + 1) || next.start - cue.end >= pauseThresholdSeconds,
       isReply: isReply(currentSpeaker),
+      explicitNextTurn: explicitNextTurn(currentSpeaker, index + 1),
+      previousSpeakerUnknown: previousSpeakerUnknown(currentSpeaker),
     };
     const visibleLength = Array.from(combined.replace(/\p{Cf}/gu, "")).length;
     // Keep the safety limit, but don't let invisible directional controls turn
@@ -149,7 +164,10 @@ export function reconstructSubtitleSentences(
     else if (!dependency && !continuation && hasCompleteEnding(combined, next === undefined, context)) flush(0.94);
   }
   if (current.length > 0) {
-    const complete = hasCompleteEnding(joinCueText(current.map(item => item.text)), true, { previousText: previousText(), turnEnded: true, isReply: isReply(currentSpeaker) });
+    const complete = hasCompleteEnding(joinCueText(current.map(item => item.text)), true, {
+      previousText: previousText(), turnEnded: true, isReply: isReply(currentSpeaker),
+      previousSpeakerUnknown: previousSpeakerUnknown(currentSpeaker),
+    });
     flush(complete ? 0.94 : 0.72, !complete);
   }
   return finalizeLinks(

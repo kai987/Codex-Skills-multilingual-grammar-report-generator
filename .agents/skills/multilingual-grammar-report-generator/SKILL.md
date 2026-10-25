@@ -39,7 +39,11 @@ and analysis caches there, not under the installed skill or its `runtime/`.
    retain review flags for genuinely unfinished or forced-length groups.
    Review Japanese inversions, postposed constituents and context-supported
    elliptical replies before treating a final particle as truncation. Do not
-   join different speakers or invent omitted words to resolve a flag.
+   join different speakers or invent omitted words to resolve a flag. Separate
+   a confirmed turn boundary from a grammatically complete sentence: contextual
+   hesitation, echo replies and interrupted speech may intentionally stay
+   fragmentary. Distinguish an explicit speaker handoff from a pause or EOF;
+   neither a final particle nor an ellipsis alone confirms the boundary.
 3. Select exactly one provider: `host`, `openai`, or `mock`.
 4. Provide exactly one natural example sentence for every identified grammar
    point, with its translation in the selected explanation language.

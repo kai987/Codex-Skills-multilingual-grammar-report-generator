@@ -42,6 +42,18 @@ an intentional pause or interrupted turn does not authorize adding missing
 words or assigning an unlabelled voice to a person. Examples for ellipsis
 should demonstrate the ellipsis, not only the corresponding complete clause.
 
+For hesitation, reformulation and echo replies, inspect the actual adjacent
+words and distinguish an explicit speaker handoff from a long pause or EOF.
+An echo can repeat a case-marked constituent from a suspended, unlabelled
+preceding turn; do not require a polished complete sentence or invent its
+speaker. A consultation preface ending in `思ってるんだけど…` followed by
+an acknowledgement can have a confirmed boundary without a missing written
+predicate. Conversely, keep a same-speaker continuation linked when the next
+cue supplies that predicate. If another person completes an interrupted
+utterance, explain the cross-turn relationship without merging speakers or
+adding the completion to the first person's source text. Keep unsupported
+bare fragments under review rather than clearing every ellipsis.
+
 ## Chinese
 
 Check subject-predicate structure, 把/被 constructions, aspect markers,

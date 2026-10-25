@@ -46,6 +46,19 @@ Ambiguous bare constituents, unclosed quotations and genuine forced splits
 retain review flags. A confirmed boundary can still contain an intentional
 hesitation or an interrupted utterance; do not silently supply its predicate.
 
+Treat turn completion separately from syntactic completion. Consult the next
+cue's explicit speaker evidence and reply text when recognizing hesitation,
+reformulation, a consultation preface such as `思ってるんだけど…`, or a
+deliberately interrupted case-marked constituent. A pause or EOF is not
+equivalent to an explicit handoff. Recognize a short echoed constituent only
+with supporting adjacent wording and turn context; an unlabelled preceding
+cue is not permission to invent a speaker. Cross-speaker pragmatic completion
+still keeps both speakers' original cue groups and times separate. Preserve
+same-speaker continuations instead of closing them merely on hesitation or
+ellipsis. Bare unsupported constituents, open quotes and forced-length splits
+remain reviewable. These rules do not widen the three-second inversion repair
+window or the ordinary pause threshold, and are not audio-verified diarization.
+
 Analyzer-version changes invalidate prior analysis cache identities; preserve
 the old cache files, but do not treat stale context-dependent results as fresh
 analysis. Already prepared reports are not silently regrouped by an upgrade.

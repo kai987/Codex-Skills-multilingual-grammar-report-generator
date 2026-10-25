@@ -51,12 +51,12 @@ async function syntheticSrt(texts: readonly string[]): Promise<SubtitleCue[]> {
 }
 
 describe("Japanese dialogue context and inversion regressions", () => {
-  it("does not reuse a pre-context-fix analysis cache key for unchanged text", () => {
+  it.each(["1.0.0", "1.1.0"])("does not reuse a %s analysis cache key for unchanged text", previousVersion => {
     const sentence = reconstructSubtitleSentences([cue(0, "確認しました。")])[0]!;
     const previousKey = createHash("sha256").update(JSON.stringify({
       text: sentence.text, language: sentence.language, languages: sentence.languages,
       previousText: null, nextText: null, analysisProvider: "host", schemaVersion: "1.0.0",
-      analyzerVersion: "1.0.0", configurationHash: "same-model", explanationLanguage: "zh-CN",
+      analyzerVersion: previousVersion, configurationHash: "same-model", explanationLanguage: "zh-CN",
     })).digest("hex");
     expect(analysisCacheKey(sentence, "same-model", "zh-CN", "host")).not.toBe(previousKey);
   });

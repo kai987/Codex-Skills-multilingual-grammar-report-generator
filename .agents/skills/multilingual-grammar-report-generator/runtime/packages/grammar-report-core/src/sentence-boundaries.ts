@@ -36,12 +36,45 @@ const ADJECTIVE_PREDICATE = /(?:[\p{Script=Han}ぁ-ゖー]+(?:しい|さい)|[\p
 
 export interface DialogueBoundaryContext {
   previousText?: string | null;
+  nextText?: string | null;
   turnEnded?: boolean;
   isReply?: boolean;
+  // A following explicit label is stronger boundary evidence than a pause or
+  // EOF, but does not identify the voice of the current unlabelled cue.
+  explicitNextTurn?: boolean;
+  previousSpeakerUnknown?: boolean;
 }
 
 function coreText(text: string): string {
   return boundaryText(text).replace(CLOSERS, "").trim();
+}
+
+function hasHesitationToken(text: string): boolean {
+  return /(?:^|[\s、，。？！!?…])(?:あっ|ああ|アア|えっ|いや|あの|えっと|ええと)(?=$|[\s、，。？！!?…]|\.{2,})/u.test(text);
+}
+
+function intentionalTurnFragment(text: string, context: DialogueBoundaryContext): boolean {
+  const visible = boundaryText(text);
+  const core = coreText(text);
+  if (!context.turnEnded || !ELLIPSIS.test(visible) || core.length > 140) return false;
+  const previous = context.previousText ? boundaryText(context.previousText) : "";
+  const next = context.nextText ? coreText(context.nextText) : "";
+  const hesitationOnly = /^(?:(?:あっ?|ああ|えっ?|ええ|うっ?|うう|いや|いえ|えっと|ええと|あの|その|な|そ|それは)[、，。？！!?….\s]*)+$/u.test(core);
+  // A hesitant answer can stop before an unlabelled reassurance. A bare topic
+  // at EOF is not enough: require both a real question and audible-form fillers.
+  if (hesitationOnly && hasHesitationToken(core) &&
+      (context.explicitNextTurn || /[？?]/u.test(previous))) return true;
+  if (!context.explicitNextTurn) return false;
+  if (/(?:あの|その|えっと|ええと)$/u.test(core) &&
+      /(?:というか|いや|あの|えっと)[\s\S]*(?:…|\.{2,})/u.test(visible)) return true;
+  // A case-marked constituent may be deliberately suspended during a repair
+  // or a startled repetition. Do not generalize this to every trailing particle.
+  if (/[がをにと]$/u.test(core) && hasHesitationToken(visible)) return true;
+  // Cooperative completion across two explicitly delimited turns is not a
+  // license to merge them. Accept only a short constituent / bare predicate.
+  return /^[\p{L}ー・]{1,20}[がを]$/u.test(core) &&
+    /^[\p{L}ー]{1,24}(?:った|した|いた|ます|ました)$/u.test(next) &&
+    !/[はがをにでと？?]/u.test(next);
 }
 
 function conventionalEllipsis(text: string, context: DialogueBoundaryContext): boolean {
@@ -51,25 +84,32 @@ function conventionalEllipsis(text: string, context: DialogueBoundaryContext): b
   if (/^(?:確かに|(?:いえ[、，\s]*)?別に)$/u.test(response)) return true;
   if (/(?:なの|(?:る|く|ぐ|す|む|ぶ|ぬ|う|た)の)[ねよ]*$/u.test(core)) return true;
   if (!context.turnEnded) return false;
+  if (intentionalTurnFragment(text, context)) return true;
   if (/^(?:[あえっ、，。？！!?\s]*)(?:いや[、，… .\s]*)+$/u.test(core)) return true;
   if (/(?:待って(?:ください)?)[、，\s]*(?:ちょっと)?$/u.test(core)) return true;
   if (/(?:は|なら)(?:あちら|こちら|そちら)に$/u.test(core.replace(/\s+/gu, ""))) return true;
   // Deliberately suspended judgements are safe only at a turn boundary.
   if (/(?:当然|必要|十分|妥当|無理|よい|いい|ない)かと$/u.test(core)) return true;
   if (/(?:と思う|と思います|そうです|そうなんです)(?:けど|が)$/u.test(core)) return true;
+  if (context.explicitNextTurn && /と\s*思って(?:い)?る(?:んだ|のだ)?けど$/u.test(core) &&
+      context.nextText && SHORT_RESPONSE.test(coreText(context.nextText))) return true;
   if (/(?:たかった|ればよかった)のに$/u.test(core)) return true;
   const previous = context.previousText === null || context.previousText === undefined
     ? "" : boundaryText(context.previousText);
   if (!previous) return false;
   if (/[？?]/u.test(previous) && /^(?:はい|ええ)[\s\S]{0,25}ですが$/u.test(core)) return true;
-  if (context.isReply !== true) return false;
+  if (context.isReply !== true && context.previousSpeakerUnknown !== true) return false;
   const answer = /^(?:(?:その|この|あの)[\p{L}ー・]+|あちら|こちら|そちら|向こう)(に|を|で|と)$/u.exec(core);
   if (answer?.[1] !== undefined && /[？?]/u.test(previous) &&
       new RegExp(`(?:誰|だれ|何|なに|どこ)${answer[1]}`, "u").test(previous)) return true;
   // A short echoed constituent is a response, not a new unfinished sentence.
-  const repeated = /^([\p{L}ー・]{1,20})(?:を|が|に|の)$/u.exec(core);
-  return repeated?.[1] !== undefined && previous.includes(repeated[1]) &&
-    (/[？?]/u.test(previous) || hasCompleteEnding(previous));
+  const repeated = /^([\p{L}ー・･]{1,20})(を|が|に|の|と)$/u.exec(core.replace(/^(?:えっ|あっ)[、，\s]+/u, ""));
+  if (repeated?.[1] === undefined || !previous.includes(repeated[1])) return false;
+  const exactSuspendedEcho = ELLIPSIS.test(boundaryText(text)) &&
+    previous.includes(`${repeated[1]}${repeated[2]}`);
+  // When the preceding voice is unknown, a shared noun alone is insufficient.
+  if (context.isReply !== true) return exactSuspendedEcho;
+  return /[？?]/u.test(previous) || hasCompleteEnding(previous) || exactSuspendedEcho;
 }
 
 /** High-signal predicate/afterthought pairs; no generic "ends in が" repair. */

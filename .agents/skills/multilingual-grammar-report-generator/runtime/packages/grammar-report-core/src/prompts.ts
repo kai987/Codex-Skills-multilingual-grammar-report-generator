@@ -1,6 +1,6 @@
 import type { ExplanationLanguage } from "./types.js";
 
-export const GRAMMAR_PROMPT_VERSION = "3.1.0";
+export const GRAMMAR_PROMPT_VERSION = "3.2.0";
 
 function explanationLanguageInstruction(
   explanationLanguage: ExplanationLanguage,
@@ -24,6 +24,8 @@ export function hostCoreInstructions(
     "Use JLPT only for Japanese, HSK only for Chinese, CEFR only for English, and unknown when a mapping is uncertain.",
     "For mixed-language sentences, analyze each language span independently and label each grammar point with its language.",
     "Do not invent grammar points. Treat vocabulary as vocabulary rather than grammar.",
+    "A confirmed subtitle boundary can contain hesitation, an echoed constituent, or an interrupted turn rather than a complete written sentence. Preserve every stated particle and never supply an unspoken predicate. An example for an ellipsis point must demonstrate that ellipsis, not merely a completed paraphrase.",
+    "Use adjacent turns to explain a short echo or cross-speaker completion without merging different speakers, assigning an unlabelled voice, or treating lexical overlap alone as proof. EOF or an ellipsis mark alone does not establish a deliberate interruption.",
     "Provide exactly one natural, original example sentence for every grammar point. The example must demonstrate that grammar point, must not merely copy the analyzed source sentence, and its translation must use the requested explanation language. Keep the example reading null when it cannot be supplied reliably.",
     "Use lower confidence or null/unknown when evidence is insufficient instead of guessing.",
     "Set pure-Japanese sentence readings and Japanese vocabulary readings to null because SudachiPy supplies them deterministically during finalization.",
