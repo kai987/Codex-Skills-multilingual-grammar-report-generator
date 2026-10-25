@@ -41,9 +41,23 @@ export function extractSpeaker(text: string): {
   speaker: string | null;
   text: string;
 } {
+  // Directional controls in SRT files are not part of a speaker's name.
+  // This is a detection-only view; parsers keep the original cleaned cue text.
+  const visible = text.replace(/\p{Cf}/gu, "").trim();
+  const inline = /^(?:[-–—]\s*)?[（(]((?:[^()（）\n]|[（(][ぁ-ゖァ-ヶー]+[）)]){1,60})[）)]\s*([\s\S]*)$/u.exec(visible);
+  if (inline?.[1] !== undefined && inline[2] !== undefined) {
+    const label = inline[1].replace(/[（(][ぁ-ゖァ-ヶー]+[）)]/gu, "").trim();
+    const soundAnnotation = /^(?:.*[のを].*音|.*のつぶやき声|音|声|つぶやき声|足音|呼び出し音|ため息|拍手|笑い声|笑い|笑|音楽|BGM|SE|♪.*)$/iu;
+    const actionAnnotation = /(?:[がを].*[くるすたて]$|ながら|ている|てる|する|した|開く|閉まる|鳴る|泣く|小声で|ささやく)/u;
+    const japaneseLabel = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]/u.test(label);
+    if (japaneseLabel && /^[\p{L}\p{N} ._'’ー・-]+$/u.test(label) &&
+        !soundAnnotation.test(label) && !actionAnnotation.test(label)) {
+      return { speaker: label, text: inline[2].trim() };
+    }
+  }
   const match =
     /^(?:[-–—]\s*)?([\p{L}\p{N}][\p{L}\p{N} ._'’-]{0,40}):\s+(.+)$/su.exec(
-      text,
+      visible,
     );
   if (match?.[1] === undefined || match[2] === undefined) {
     return { speaker: null, text };

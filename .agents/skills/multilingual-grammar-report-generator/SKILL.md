@@ -33,6 +33,10 @@ and analysis caches there, not under the installed skill or its `runtime/`.
 1. Validate and parse the selected UTF-8 input.
 2. Reconstruct complete sentences while preserving cues, times, speakers,
    context links, languages, confidence, and review state.
+   Recognize inline Japanese speaker labels; do not merge separate complete
+   replies merely because they lack punctuation, or flag a complete reply
+   solely because it is the last cue. Keep dependent clauses connected and
+   retain review flags for genuinely unfinished or forced-length groups.
 3. Select exactly one provider: `host`, `openai`, or `mock`.
 4. Provide exactly one natural example sentence for every identified grammar
    point, with its translation in the selected explanation language.

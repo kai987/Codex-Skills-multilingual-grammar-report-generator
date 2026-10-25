@@ -11,10 +11,18 @@ import {
 import {
   normalizeSubtitleCues,
   parseSubtitle,
+  extractSpeaker,
   type SubtitleFormat,
 } from "@mvl/subtitle-core";
 
 import type { ReconstructedSentence } from "./types.js";
+import {
+  continuesInNextCue,
+  continuesClosedQuotation,
+  hasCompleteEnding,
+  hasTerminalPunctuation,
+  isIncompleteEnding,
+} from "./sentence-boundaries.js";
 
 export interface LoadedGrammarInput {
   sourceType: "subtitle" | "text" | "subtitle-package";
@@ -23,8 +31,6 @@ export interface LoadedGrammarInput {
   cues: SubtitleCue[];
   text: string;
 }
-
-const TERMINAL_PUNCTUATION = /(?:[。！？!?…]+|[.!?]+["'”’』」）)]*)$/u;
 
 function joinCueText(parts: readonly string[]): string {
   return parts.reduce((result, part) => {
@@ -57,28 +63,43 @@ export function reconstructSubtitleSentences(
     needsReview: boolean;
   }[] = [];
   let current: SubtitleCue[] = [];
+  let currentSpeaker: string | null = null;
   const flush = (confidence: number, needsReview = false): void => {
     if (current.length === 0) return;
     groups.push({ cues: current, confidence, needsReview });
     current = [];
+    currentSpeaker = null;
   };
-  for (const cue of cues) {
+  for (const [index, cue] of cues.entries()) {
     const previous = current.at(-1);
+    const speaker = cue.speaker ?? extractSpeaker(cue.text).speaker;
     if (
       previous !== undefined &&
-      ((previous.speaker !== null &&
-        cue.speaker !== null &&
-        previous.speaker !== cue.speaker) ||
+      ((speaker !== null && speaker !== currentSpeaker) ||
         cue.start - previous.end >= pauseThresholdSeconds)
     ) {
-      flush(0.82);
+      const incomplete = isIncompleteEnding(joinCueText(current.map(item => item.text)));
+      flush(incomplete ? 0.65 : 0.82, incomplete);
     }
     current.push(cue);
+    if (speaker !== null) currentSpeaker = speaker;
     const combined = joinCueText(current.map((item) => item.text));
-    if (TERMINAL_PUNCTUATION.test(combined)) flush(0.97);
-    else if (combined.length >= 180) flush(0.65, true);
+    const next = cues[index + 1];
+    const nextSpeaker = next === undefined ? null : next.speaker ?? extractSpeaker(next.text).speaker;
+    const continuation = next !== undefined &&
+      (nextSpeaker === null || nextSpeaker === currentSpeaker) && continuesInNextCue(next.text);
+    const quotedContinuation = continuation && next !== undefined && continuesClosedQuotation(combined, next.text);
+    const visibleLength = Array.from(combined.replace(/\p{Cf}/gu, "")).length;
+    // Keep the safety limit, but don't let invisible directional controls turn
+    // an otherwise complete sentence into a forced-length fragment.
+    if (visibleLength >= 180) flush(0.65, true);
+    else if (!quotedContinuation && hasTerminalPunctuation(combined)) flush(0.97);
+    else if (!continuation && hasCompleteEnding(combined, next === undefined)) flush(0.94);
   }
-  flush(0.72, true);
+  if (current.length > 0) {
+    const complete = hasCompleteEnding(joinCueText(current.map(item => item.text)), true);
+    flush(complete ? 0.94 : 0.72, !complete);
+  }
   return finalizeLinks(
     groups.map((group, index) => {
       const text = joinCueText(group.cues.map((cue) => cue.text));

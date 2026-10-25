@@ -14,9 +14,19 @@ source sentence. Its translation follows the report explanation language;
 leave its reading `null` when a reliable reading is unavailable.
 
 Sentence reconstruction closes a group on terminal punctuation, a speaker
-change, a configurable pause, or the maximum safe length. Preserve every
-contributing cue ID and the first/last time. Mark uncertain end-of-input or
-forced-length groups for review.
+change, a configurable pause, a confidently complete Japanese predicate, or
+the maximum safe visible length. Detect inline Japanese speaker labels and
+furigana without treating sound/action annotations as names; carry the active
+speaker through unlabelled continuation cues. Ignore Unicode format controls
+for boundary decisions and length accounting, but preserve source text.
+Inspect the next cue before closing an unpunctuated predicate: quotation,
+nominalization and connective continuations can still depend on it. Keep
+reason/benefactive/conditional chains together until their final predicate.
+Preserve every contributing cue ID and the first/last time; do not fabricate
+within-cue timing. EOF alone is not a reason to request review: complete short
+replies remain complete without a final period. Unclosed quotes, unfinished
+connectives, ambiguous fragments and forced-length groups still require
+review. These conservative heuristics are not a full Japanese syntax parser.
 
 The public analysis providers are exactly:
 
