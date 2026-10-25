@@ -30,6 +30,7 @@ import {
   hasOpenQuote,
   isStandaloneAcknowledgement,
   isSuspendedClause,
+  isTerminalAdditiveShi,
   type DialogueBoundaryContext,
 } from "./sentence-boundaries.js";
 
@@ -81,6 +82,13 @@ export function reconstructSubtitleSentences(
     const group = groups.at(-1);
     return group === undefined ? null : joinCueText(group.cues.map(cue => cue.text));
   };
+  const previousGap = (): number => {
+    const end = groups.at(-1)?.cues.at(-1)?.end;
+    return end === undefined || current[0] === undefined ? Infinity : current[0].start - end;
+  };
+  const previousHasMultipleSpeakers = (): boolean => groups.at(-1)?.cues.some(cue =>
+    (speakers[cueIndex.get(cue.id) ?? -1]?.length ?? 0) > 1,
+  ) ?? false;
   const cueIndex = new Map(cues.map((cue, index) => [cue.id, index]));
   const isReply = (speaker: string | null): boolean => {
     const previous = groups.at(-1);
@@ -129,6 +137,8 @@ export function reconstructSubtitleSentences(
       previousText: previousText(), nextText: cue.text, turnEnded: true,
       isReply: isReply(currentSpeaker), explicitNextTurn: explicitNextTurn(currentSpeaker, index),
       previousSpeakerUnknown: previousSpeakerUnknown(currentSpeaker),
+      previousGapSeconds: previousGap(), nextGapSeconds: previous === undefined ? Infinity : cue.start - previous.end,
+      previousHasMultipleSpeakers: previousHasMultipleSpeakers(),
     };
     if (
       previous !== undefined &&
@@ -148,7 +158,7 @@ export function reconstructSubtitleSentences(
       (nextSpeaker === null || nextSpeaker === currentSpeaker) &&
       (continuesInNextCue(next.text) || continuesNominalizedClause(combined, next.text));
     const quotedContinuation = continuation && next !== undefined && continuesClosedQuotation(combined, next.text);
-    const dependency = clauseChains.links.has(index) || (!multipleSpeakersAt(index) && next !== undefined &&
+    const linkedDependency = clauseChains.links.has(index) || (!multipleSpeakersAt(index) && next !== undefined &&
       contextualLink(combined, currentSpeaker, index + 1, cue.end));
     const context: DialogueBoundaryContext = {
       previousText: previousText(),
@@ -157,7 +167,11 @@ export function reconstructSubtitleSentences(
       isReply: isReply(currentSpeaker),
       explicitNextTurn: explicitNextTurn(currentSpeaker, index + 1),
       previousSpeakerUnknown: previousSpeakerUnknown(currentSpeaker),
+      previousGapSeconds: previousGap(), nextGapSeconds: next === undefined ? Infinity : next.start - cue.end,
+      previousHasMultipleSpeakers: previousHasMultipleSpeakers(),
     };
+    const terminalShi = !multipleSpeakersAt(index) && isTerminalAdditiveShi(combined, context);
+    const dependency = linkedDependency && !terminalShi;
     const visibleLength = Array.from(combined.replace(/\p{Cf}/gu, "")).length;
     const pendingFiller = hasPendingClauseBeforeFillers(current.map(c => c.text));
     // Keep the safety limit, but don't let invisible directional controls turn
@@ -167,6 +181,7 @@ export function reconstructSubtitleSentences(
       const lastLine = cue.text.split("\n").at(-1) ?? cue.text;
       flush(0.82, isIncompleteEnding(lastLine, { ...context, turnEnded: true }));
     }
+    else if (terminalShi && !continuation) flush(0.90);
     else if (attached && !dependency && !pendingFiller) flush(hasTerminalPunctuation(combined) ? 0.97 : 0.92);
     else if (!dependency && !continuation && !hasOpenQuote(combined) && clauseChains.ends.has(index)) flush(0.91);
     else if (!dependency && !pendingFiller && !quotedContinuation && hasTerminalPunctuation(combined)) flush(0.97);

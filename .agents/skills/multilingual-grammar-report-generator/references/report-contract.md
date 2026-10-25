@@ -74,6 +74,22 @@ Separate completed judgements, startled denials, calls and new stances when
 their wording establishes distinct speech actions, without inferring voices.
 Retain actual quoted, nominalized and `待って / ください・から…` continuations.
 
+Distinguish three `し` roles. A terminal additive `し` can retain its boundary
+when a completed preceding statement, an additive temporal marker such as
+`も`, and a following contrast reset jointly support a backward-looking
+addition within four seconds on each side; a pause or EOF alone is insufficient.
+Do not borrow retrospective evidence from a native multi-speaker cue. A continuing list may still
+depend on a person/actor phrase ending in `に` and a later quoted-thought
+predicate such as `〜って思っている`. Do not mistake adverbs such as
+`確かに` for those target phrases. An object-marked verb ending such as
+`感情を閉ざし` is a conservative renyo-continuation candidate, not evidence
+of an appended connective `し`. A modified self-topic and its supported
+`ただの＋名词` judgement may complete that chain within the existing bounds;
+bare nominal endings are not globally complete. Lexical nouns ending in
+`し` are not automatically connectives or verb stems. These hints are not a
+full morphological parser: retain review where the base form or dependency
+is uncertain, and preserve quotes, hard stops, speakers and length limits.
+
 Analyzer-version changes invalidate prior analysis cache identities; preserve
 the old cache files, but do not treat stale context-dependent results as fresh
 analysis. Already prepared reports are not silently regrouped by an upgrade.

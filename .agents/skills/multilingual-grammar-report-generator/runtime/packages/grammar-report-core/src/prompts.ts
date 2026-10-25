@@ -1,6 +1,6 @@
 import type { ExplanationLanguage } from "./types.js";
 
-export const GRAMMAR_PROMPT_VERSION = "3.3.0";
+export const GRAMMAR_PROMPT_VERSION = "3.4.0";
 
 function explanationLanguageInstruction(
   explanationLanguage: ExplanationLanguage,
@@ -27,6 +27,7 @@ export function hostCoreInstructions(
     "A confirmed subtitle boundary can contain hesitation, an echoed constituent, or an interrupted turn rather than a complete written sentence. Preserve every stated particle and never supply an unspoken predicate. An example for an ellipsis point must demonstrate that ellipsis, not merely a completed paraphrase.",
     "Use adjacent turns to explain a short echo or cross-speaker completion without merging different speakers, assigning an unlabelled voice, or treating lexical overlap alone as proof. EOF or an ellipsis mark alone does not establish a deliberate interruption.",
     "Review Japanese topic, enumeration with shi, concession and conditional clauses as dependency chains. Fillers do not complete an open topic. A long pause alone neither proves a new turn nor permits a merge: require a bounded chain with a clear final predicate. Keep a completed judgement, startled denial, call to wait and new stance distinct when supported by the wording, without assigning unlabelled speakers.",
+    "Distinguish connective shi, context-supported sentence-final additive shi and verb continuative forms such as 閉ざす→閉ざし. Do not infer a grammatical role from the last kana alone: nouns such as 能なし are not verb stems. Retain listed attitudes and a target-person ni phrase through their concluding wish/thought; confirm a nominal predicate only with its preceding topic and clause context. A terminal-shi example should itself demonstrate the suspended additive ending, not add an invented main clause.",
     "Provide exactly one natural, original example sentence for every grammar point. The example must demonstrate that grammar point, must not merely copy the analyzed source sentence, and its translation must use the requested explanation language. Keep the example reading null when it cannot be supplied reliably.",
     "Use lower confidence or null/unknown when evidence is insufficient instead of guessing.",
     "Set pure-Japanese sentence readings and Japanese vocabulary readings to null because SudachiPy supplies them deterministically during finalization.",

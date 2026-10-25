@@ -12,7 +12,7 @@ import type {
 
 // Reconstruction and speaker context changed; analyses made with the previous
 // context must not be silently reused under an identical sentence-text key.
-const ANALYZER_VERSION = "1.3.0";
+const ANALYZER_VERSION = "1.4.0";
 
 export function analysisCacheKey(
   sentence: ReconstructedSentence,

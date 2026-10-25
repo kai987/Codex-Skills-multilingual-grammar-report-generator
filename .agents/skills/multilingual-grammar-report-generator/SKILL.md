@@ -48,6 +48,8 @@ and analysis caches there, not under the installed skill or its `runtime/`.
    through fillers only when bounded context supplies a clear final predicate.
    Do not absorb a completed judgement, startled denial or call into a new
    stance merely because those cues have no explicit speaker labels.
+   Distinguish terminal additive `し`, a continuing list and verb-stem `し`;
+   decide from morphology and adjacent context, not the last character alone.
 3. Select exactly one provider: `host`, `openai`, or `mock`.
 4. Provide exactly one natural example sentence for every identified grammar
    point, with its translation in the selected explanation language.

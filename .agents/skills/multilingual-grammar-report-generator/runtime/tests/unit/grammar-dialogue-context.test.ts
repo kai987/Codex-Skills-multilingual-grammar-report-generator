@@ -51,7 +51,7 @@ async function syntheticSrt(texts: readonly string[]): Promise<SubtitleCue[]> {
 }
 
 describe("Japanese dialogue context and inversion regressions", () => {
-  it.each(["1.0.0", "1.1.0", "1.2.0"])("does not reuse a %s analysis cache key for unchanged text", previousVersion => {
+  it.each(["1.0.0", "1.1.0", "1.2.0", "1.3.0"])("does not reuse a %s analysis cache key for unchanged text", previousVersion => {
     const sentence = reconstructSubtitleSentences([cue(0, "確認しました。")])[0]!;
     const previousKey = createHash("sha256").update(JSON.stringify({
       text: sentence.text, language: sentence.language, languages: sentence.languages,

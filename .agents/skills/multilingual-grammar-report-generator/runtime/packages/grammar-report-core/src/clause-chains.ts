@@ -2,11 +2,13 @@ import type { SubtitleCue } from "@mvl/shared";
 import {
   boundaryText, clauseDependency, continuesInNextCue, continuesNominalizedClause,
   hasCompleteEnding, hasOpenQuote, isBareTopic, isClauseFiller, isStartledDenial, isWaitCall, isStandaloneAcknowledgement,
+  isContextualNominalConclusion,
+  MAX_CLAUSE_GAP_SECONDS,
+  isQuotedThoughtClosure,
 } from "./sentence-boundaries.js";
 
 // Separate from the ordinary pause threshold and the 3-second inversion repair.
 // A larger rhetorical gap is usable only after proving a bounded, complete chain.
-const MAX_CLAUSE_GAP_SECONDS = 4;
 const MAX_CHAIN_CUES = 12;
 const MAX_VISIBLE_LENGTH = 180;
 
@@ -50,7 +52,9 @@ export function findClauseChains(
           continuesNominalizedClause(cue.text, next.text));
         // One lone trailing connective is not enough to defeat an ordinary
         // pause; require at least two explicit dependency signals for that.
-        if (end > start && hasCompleteEnding(cue.text, true) && !continues &&
+        const closesNominal = dependentCount >= 2 && end > start &&
+          isContextualNominalConclusion(cue.text, cues[end - 1]!.text);
+        if (end > start && (hasCompleteEnding(cue.text, true) || isQuotedThoughtClosure(cue.text) || closesNominal) && !continues &&
             (!crossesPause || dependentCount >= 2)) {
           for (let i = start; i < end; i++) links.add(i);
           ends.add(end);

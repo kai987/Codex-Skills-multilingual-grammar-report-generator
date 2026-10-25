@@ -66,6 +66,19 @@ nominalized continuations. Automatic clause-chain limits are conservative
 safety bounds, not evidence that every chain inside them is correct; inspect
 remaining flags and do not assign unlabelled voices from the proposed grouping.
 
+For `し`, identify the actual form before explaining it. Sentence-final
+additive `し` can look back to a completed statement and leave a list open in
+pragmatic effect; confirm that use from backward additive evidence and the
+following discourse reset, not from silence or EOF. Its example should also
+demonstrate the terminal use. In a continuing list, follow an object/person
+phrase such as `人に` to its wish or thought predicate before closing the
+unit. In `閉ざし`, the `し` belongs to the renyo form of `閉ざす`, unlike
+the connective after `だったし`; do not label both as the same grammar.
+Check the base form and clause relation, including a supported nominal
+conclusion after a modified topic. An orthographic stem hint does not prove
+meaning or proficiency level, and lexical nouns such as `能なし` are not
+verb stems merely because they end in `し`.
+
 ## Chinese
 
 Check subject-predicate structure, 把/被 constructions, aspect markers,
